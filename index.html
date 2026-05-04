@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>オセロゲーム</title>
+<title>オセロ ～悪の組織を打ち倒せ～</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -24,11 +24,83 @@ h1 {
   color: #e0e0ff;
 }
 
+#stage-label {
+  font-size: 1rem;
+  color: #fc7;
+  margin-bottom: 8px;
+  letter-spacing: 0.1em;
+}
+
 #info {
   font-size: 1.2rem;
   margin-bottom: 15px;
   height: 1.5em;
   color: #aab;
+}
+
+#main-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 15px;
+}
+
+#portrait-area {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+#portrait-frame {
+  width: 200px;
+  height: 234px; /* セルアスペクト 0.889 に近づけて歪みを抑える */
+  border: 2px solid #445;
+  border-radius: 8px;
+  background-color: #0e0e22;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+  /* スプライト: 横3列×縦2行を 320% × 220% で少し拡大し、隣セルの映り込みを切る */
+  background-size: 320% 220%;
+  opacity: 1;
+  transition: opacity 0.18s ease-in-out;
+}
+
+#portrait-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #667;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 10px;
+  pointer-events: none;
+}
+
+/* スプライト位置: [intro][normal][winning] / [losing][win][lose]
+   bg-size 320% 220% に合わせ各セル中心がフレーム中央に来るよう調整 */
+.sprite-intro   { background-position:  1.5%  4.2%; }
+.sprite-normal  { background-position: 50%    4.2%; }
+.sprite-winning { background-position: 98.5%  4.2%; }
+.sprite-losing  { background-position:  1.5% 95.8%; }
+.sprite-win     { background-position: 50%   95.8%; }
+.sprite-lose    { background-position: 98.5% 95.8%; }
+
+#portrait-name {
+  font-size: 1.1rem;
+  color: #fc7;
+  font-weight: bold;
+}
+
+#center-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #score {
@@ -64,8 +136,8 @@ h1 {
   border: 3px solid #333;
   border-radius: 6px;
   padding: 2px;
-  width: min(90vw, 480px);
-  height: min(90vw, 480px);
+  width: min(80vw, 440px);
+  height: min(80vw, 440px);
 }
 
 .cell {
@@ -103,7 +175,6 @@ h1 {
   height: 100%;
   border-radius: 50%;
   backface-visibility: hidden;
-  /* 厚みの表現 */
   box-sizing: border-box;
 }
 
@@ -117,13 +188,11 @@ h1 {
   box-shadow: 0 2px 6px rgba(0,0,0,0.35), inset 0 1px 3px rgba(255,255,255,0.8);
 }
 
-/* 黒が表（0deg）、白が裏（180deg） */
 .disc.black .disc-black { transform: rotateY(0deg); }
 .disc.black .disc-white { transform: rotateY(180deg); }
 .disc.white .disc-black { transform: rotateY(180deg); }
 .disc.white .disc-white { transform: rotateY(0deg); }
 
-/* 新しく置かれた石のアニメーション */
 .disc.placed {
   animation: placeAnim 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -134,38 +203,23 @@ h1 {
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* ひっくり返るアニメーション：3D回転 + 浮き上がり */
-.disc.flip-to-white {
-  animation: flipToWhite 0.3s ease-in-out forwards;
-}
-.disc.flip-to-black {
-  animation: flipToBlack 0.3s ease-in-out forwards;
-}
+.disc.flip-to-white { animation: flipToWhite 0.3s ease-in-out forwards; }
+.disc.flip-to-black { animation: flipToBlack 0.3s ease-in-out forwards; }
 
 @keyframes flipToWhite {
-  0%   { transform: rotateY(0deg) translateY(0) scale(1);
-         filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
-  30%  { transform: rotateY(60deg) translateY(-12px) scale(1.08);
-         filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
-  50%  { transform: rotateY(90deg) translateY(-16px) scale(1.1);
-         filter: drop-shadow(0 18px 14px rgba(0,0,0,0.25)); }
-  70%  { transform: rotateY(120deg) translateY(-12px) scale(1.08);
-         filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
-  100% { transform: rotateY(180deg) translateY(0) scale(1);
-         filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+  0%   { transform: rotateY(0deg) translateY(0) scale(1); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+  30%  { transform: rotateY(60deg) translateY(-12px) scale(1.08); filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
+  50%  { transform: rotateY(90deg) translateY(-16px) scale(1.1); filter: drop-shadow(0 18px 14px rgba(0,0,0,0.25)); }
+  70%  { transform: rotateY(120deg) translateY(-12px) scale(1.08); filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
+  100% { transform: rotateY(180deg) translateY(0) scale(1); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
 }
 
 @keyframes flipToBlack {
-  0%   { transform: rotateY(180deg) translateY(0) scale(1);
-         filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
-  30%  { transform: rotateY(240deg) translateY(-12px) scale(1.08);
-         filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
-  50%  { transform: rotateY(270deg) translateY(-16px) scale(1.1);
-         filter: drop-shadow(0 18px 14px rgba(0,0,0,0.25)); }
-  70%  { transform: rotateY(300deg) translateY(-12px) scale(1.08);
-         filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
-  100% { transform: rotateY(360deg) translateY(0) scale(1);
-         filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+  0%   { transform: rotateY(180deg) translateY(0) scale(1); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+  30%  { transform: rotateY(240deg) translateY(-12px) scale(1.08); filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
+  50%  { transform: rotateY(270deg) translateY(-16px) scale(1.1); filter: drop-shadow(0 18px 14px rgba(0,0,0,0.25)); }
+  70%  { transform: rotateY(300deg) translateY(-12px) scale(1.08); filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
+  100% { transform: rotateY(360deg) translateY(0) scale(1); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
 }
 
 #buttons {
@@ -187,80 +241,374 @@ button {
 
 button:hover { background: #3a6ac8; }
 
-#difficulty {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-#difficulty label { color: #aab; }
-
-#difficulty select {
-  padding: 6px 12px;
-  font-size: 1rem;
-  border-radius: 4px;
-  border: 1px solid #555;
-  background: #2a2a3e;
-  color: #eee;
-}
-
-#overlay {
+.overlay {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.85);
   align-items: center;
   justify-content: center;
   z-index: 10;
+  padding: 20px;
 }
 
-#overlay.show { display: flex; }
+.overlay.show { display: flex; }
 
-#result {
+.modal {
   background: #1e1e3a;
-  padding: 40px 60px;
+  padding: 32px 40px;
   border-radius: 12px;
   text-align: center;
   border: 2px solid #445;
+  max-width: 600px;
+  width: 100%;
 }
 
-#result h2 { font-size: 1.8rem; margin-bottom: 15px; color: #7df; }
-#result p { font-size: 1.2rem; margin-bottom: 20px; }
+.modal h2 { font-size: 1.8rem; margin-bottom: 15px; color: #7df; }
+.modal p { font-size: 1.1rem; margin-bottom: 16px; line-height: 1.6; }
+
+.intro-portrait {
+  width: 240px;
+  height: 270px; /* セルアスペクトに合わせ調整 (元320 → 270) */
+  margin: 0 auto 16px;
+  border: 2px solid #556;
+  border-radius: 8px;
+  background-color: #0e0e22;
+  background-repeat: no-repeat;
+  background-size: 320% 220%;
+  overflow: hidden;
+  position: relative;
+  opacity: 1;
+  transition: opacity 0.18s ease-in-out;
+}
+
+.intro-portrait .placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #778;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 10px;
+  pointer-events: none;
+}
+
+.intro-name {
+  font-size: 1.6rem;
+  color: #fc7;
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+
+.intro-title {
+  font-size: 0.95rem;
+  color: #8af;
+  margin-bottom: 14px;
+}
+
+.intro-quote {
+  font-size: 1.05rem;
+  color: #ddd;
+  font-style: italic;
+  margin-bottom: 22px;
+  padding: 12px 16px;
+  background: #15152a;
+  border-left: 3px solid #fc7;
+  text-align: left;
+}
+
+.stage-tag {
+  display: inline-block;
+  background: #fc7;
+  color: #1a1a2e;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+  letter-spacing: 0.1em;
+}
+
+.title-modal h2 { font-size: 2.2rem; color: #fc7; margin-bottom: 8px; }
+.title-sub { color: #8af; margin-bottom: 24px; }
+
+/* ==================== 演出: 試合前 ==================== */
+#intro-overlay.show {
+  background:
+    repeating-linear-gradient(45deg, rgba(252,199,119,0.06) 0 24px, rgba(0,0,0,0) 24px 48px),
+    radial-gradient(circle at center, rgba(120,40,120,0.4), rgba(0,0,0,0.92));
+  animation: introOverlayFlash 0.5s ease-out;
+}
+@keyframes introOverlayFlash {
+  0% { background-color: rgba(252,199,119,0.5); }
+  50% { background-color: rgba(80,30,100,0.6); }
+  100% { background-color: rgba(0,0,0,0.85); }
+}
+#intro-overlay.show .modal {
+  animation: introModalEnter 0.7s cubic-bezier(0.16, 1.3, 0.4, 1);
+  background: linear-gradient(160deg, #2a1e3e, #1a1a2e 60%, #1e1432);
+  border: 2px solid #fc7;
+  box-shadow: 0 0 40px rgba(252,199,119,0.4), inset 0 0 30px rgba(120,40,120,0.3);
+  position: relative;
+  overflow: hidden;
+}
+#intro-overlay.show .modal::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%; right: -50%; bottom: -50%;
+  background: conic-gradient(from 0deg, transparent 80%, rgba(252,199,119,0.2));
+  animation: introBeam 4s linear infinite;
+  pointer-events: none;
+}
+@keyframes introBeam { to { transform: rotate(360deg); } }
+@keyframes introModalEnter {
+  0%   { transform: scale(0.6) translateY(40px); opacity: 0; filter: blur(8px); }
+  60%  { transform: scale(1.05) translateY(-4px); filter: blur(0); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+#intro-overlay.show .stage-tag {
+  animation: stageTagPulse 1.4s ease-in-out infinite;
+  box-shadow: 0 0 16px rgba(252,199,119,0.6);
+  position: relative;
+  z-index: 1;
+}
+@keyframes stageTagPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(252,199,119,0.6); }
+  50% { transform: scale(1.08); box-shadow: 0 0 28px rgba(252,199,119,1), 0 0 50px rgba(252,150,80,0.6); }
+}
+#intro-overlay.show .intro-portrait {
+  animation: introPortraitDrop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 25px rgba(252,199,119,0.3);
+  position: relative;
+  z-index: 1;
+}
+@keyframes introPortraitDrop {
+  0%   { opacity: 0; transform: translateY(-30px) scale(0.85) rotate(-3deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+}
+#intro-overlay.show .intro-name {
+  animation: introNameZoom 0.8s ease-out 0.35s both;
+  text-shadow: 0 0 12px rgba(252,199,119,0.6);
+  position: relative;
+  z-index: 1;
+}
+@keyframes introNameZoom {
+  0%   { opacity: 0; letter-spacing: 1em; transform: scale(1.4); filter: blur(6px); }
+  100% { opacity: 1; letter-spacing: 0.05em; transform: scale(1); filter: blur(0); }
+}
+#intro-overlay.show .intro-title,
+#intro-overlay.show .intro-quote {
+  animation: introQuoteSlide 0.5s ease-out 0.6s both;
+  position: relative;
+  z-index: 1;
+}
+#intro-overlay.show .intro-quote { animation-delay: 0.75s; }
+@keyframes introQuoteSlide {
+  0%   { opacity: 0; transform: translateX(-30px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+#intro-overlay.show button {
+  animation: introBtnAppear 0.4s ease-out 1s both;
+  position: relative;
+  z-index: 1;
+}
+@keyframes introBtnAppear {
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== 演出: 結果(勝利) ==================== */
+#result-overlay.win.show {
+  background: radial-gradient(circle at center, rgba(255,215,80,0.25), rgba(0,0,0,0.9));
+  animation: winFlash 0.6s ease-out;
+}
+@keyframes winFlash {
+  0%   { background-color: rgba(255,215,80,0.9); }
+  30%  { background-color: rgba(255,215,80,0.4); }
+  100% { background-color: rgba(0,0,0,0.85); }
+}
+#result-overlay.win.show .modal {
+  animation: winModalEnter 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: linear-gradient(160deg, #1e3a2e, #1a1a2e 60%, #2e3a1e);
+  border: 2px solid #4f8;
+  box-shadow: 0 0 50px rgba(80,255,160,0.5), inset 0 0 40px rgba(255,215,80,0.2);
+  position: relative;
+  overflow: hidden;
+}
+#result-overlay.win.show .modal::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%; right: -50%; bottom: -50%;
+  background: conic-gradient(from 0deg, transparent 70%, rgba(80,255,160,0.18), transparent);
+  animation: winBeam 3s linear infinite;
+  pointer-events: none;
+}
+@keyframes winBeam { to { transform: rotate(360deg); } }
+@keyframes winModalEnter {
+  0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+  60%  { transform: scale(1.15) rotate(2deg); }
+  80%  { transform: scale(0.95) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+#result-overlay.win.show #result-title {
+  animation: winTitlePulse 1.2s ease-in-out infinite alternate;
+  text-shadow: 0 0 14px #4f8, 0 0 28px #fc7, 0 0 50px #4f8;
+}
+@keyframes winTitlePulse {
+  0%   { transform: scale(1); filter: brightness(1); }
+  100% { transform: scale(1.08); filter: brightness(1.4); }
+}
+
+/* 紙吹雪 */
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 14px;
+  top: -20px;
+  pointer-events: none;
+  animation: confettiFall linear forwards;
+  z-index: 1;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0.8; }
+}
+
+/* ==================== 演出: 結果(敗北) ==================== */
+#result-overlay.lose.show {
+  background: radial-gradient(circle at center, rgba(80,20,20,0.5), rgba(0,0,0,0.95));
+  animation: loseFadeIn 0.6s ease-out;
+}
+@keyframes loseFadeIn {
+  0%   { background-color: rgba(120,20,20,0.9); filter: blur(8px); }
+  100% { background-color: rgba(0,0,0,0.92); filter: blur(0); }
+}
+#result-overlay.lose.show .modal {
+  animation: loseModalEnter 0.8s ease-out, loseModalShake 0.5s ease-in-out 0.5s;
+  background: linear-gradient(160deg, #2e1818, #1a1a1f 60%, #1e1418);
+  border: 2px solid #f66;
+  box-shadow: 0 0 40px rgba(255,80,80,0.4), inset 0 0 30px rgba(80,20,20,0.4);
+  position: relative;
+}
+@keyframes loseModalEnter {
+  0%   { transform: translateY(-40px) scale(0.9); opacity: 0; filter: blur(12px); }
+  100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+}
+@keyframes loseModalShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80%      { transform: translateX(5px); }
+}
+#result-overlay.lose.show #result-title {
+  animation: loseTitleFlicker 2s ease-in-out infinite;
+  text-shadow: 0 0 10px #f66, 3px 3px 0 rgba(120,20,20,0.8);
+}
+@keyframes loseTitleFlicker {
+  0%, 100% { opacity: 1; }
+  47%      { opacity: 1; }
+  48%      { opacity: 0.4; }
+  50%      { opacity: 1; }
+  52%      { opacity: 0.6; }
+  54%      { opacity: 1; }
+}
+
+/* 灰の落下粒子(敗北) */
+.ash {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(180,180,180,0.6);
+  border-radius: 50%;
+  top: -10px;
+  pointer-events: none;
+  animation: ashFall linear forwards;
+  z-index: 1;
+}
+@keyframes ashFall {
+  0%   { transform: translateY(-10px) translateX(0); opacity: 0.8; }
+  100% { transform: translateY(105vh) translateX(40px); opacity: 0; }
+}
+
+@media (max-width: 720px) {
+  #main-area { flex-direction: column; align-items: center; }
+  #portrait-area { width: auto; }
+}
 </style>
 </head>
 <body>
 
-<h1>オセロ</h1>
+<h1>オセロ ～悪の組織を打ち倒せ～</h1>
+<div id="stage-label"></div>
 <div id="info">あなたの番です（黒）</div>
-<div id="score">
-  <div class="score-item active" id="score-black">
-    <span class="score-disc black"></span>
-    <span>あなた: <strong id="count-black">2</strong></span>
+
+<div id="main-area">
+  <div id="portrait-area">
+    <div id="portrait-frame">
+      <div id="portrait-placeholder"></div>
+    </div>
+    <div id="portrait-name"></div>
   </div>
-  <div class="score-item" id="score-white">
-    <span class="score-disc white"></span>
-    <span>CPU: <strong id="count-white">2</strong></span>
+
+  <div id="center-area">
+    <div id="score">
+      <div class="score-item active" id="score-black">
+        <span class="score-disc black"></span>
+        <span>あなた: <strong id="count-black">2</strong></span>
+      </div>
+      <div class="score-item" id="score-white">
+        <span class="score-disc white"></span>
+        <span><span id="opp-label">敵</span>: <strong id="count-white">2</strong></span>
+      </div>
+    </div>
+    <div id="board"></div>
   </div>
-</div>
-<div id="board"></div>
-<div id="difficulty">
-  <label>CPU強さ:</label>
-  <select id="level">
-    <option value="1">弱い</option>
-    <option value="2" selected>普通</option>
-    <option value="3">強い</option>
-  </select>
-</div>
-<div id="buttons">
-  <button onclick="newGame()">新しいゲーム</button>
 </div>
 
-<div id="overlay">
-  <div id="result">
+<div id="buttons">
+  <button onclick="returnToTitle()">タイトルへ</button>
+</div>
+
+<!-- タイトル画面 -->
+<div id="title-overlay" class="overlay show">
+  <div class="modal title-modal">
+    <h2>オセロ</h2>
+    <div class="title-sub">～悪の組織を打ち倒せ～</div>
+    <p>君は世界を救う盤上の戦士。<br>悪の組織の刺客たちを順に打ち破れ。</p>
+    <div id="title-progress" style="color:#aab;font-size:0.9rem;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button onclick="startCampaign()">最初から</button>
+      <button id="continue-btn" onclick="continueCampaign()" style="display:none;background:#5a8;">続きから</button>
+    </div>
+  </div>
+</div>
+
+<!-- ステージ紹介画面 -->
+<div id="intro-overlay" class="overlay">
+  <div class="modal">
+    <div id="intro-stage-tag" class="stage-tag"></div>
+    <div id="intro-portrait" class="intro-portrait">
+      <div id="intro-placeholder" class="placeholder"></div>
+    </div>
+    <div id="intro-name" class="intro-name"></div>
+    <div id="intro-title" class="intro-title"></div>
+    <div id="intro-quote" class="intro-quote"></div>
+    <button onclick="startBattle()">対戦開始</button>
+  </div>
+</div>
+
+<!-- 結果画面 -->
+<div id="result-overlay" class="overlay">
+  <div class="modal">
+    <div id="result-portrait" class="intro-portrait" style="width:200px;height:225px;">
+      <div id="result-placeholder" class="placeholder"></div>
+    </div>
     <h2 id="result-title"></h2>
+    <p id="result-quote" class="intro-quote" style="font-style:italic;"></p>
     <p id="result-detail"></p>
-    <button onclick="closeResult(); newGame();">もう一度</button>
+    <div id="result-buttons" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"></div>
   </div>
 </div>
 
@@ -268,16 +616,82 @@ button:hover { background: #3a6ac8; }
 const BLACK = 1, WHITE = -1, EMPTY = 0;
 const DIRS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
 
+// ===== ステージデータ =====
+// AI レベル: 1=ランダム, 2=重み付き貪欲, 3=ミニマックス深さ4-8, 4=ミニマックス深さ6-10
+const STAGES = [
+  {
+    id: 'sentouin',
+    name: '戦闘員',
+    title: '組織の下っ端兵士',
+    aiLevel: 1,
+    introQuote: 'ククク…我が悪の組織にようこそ。お前のような奴、この戦闘員様が片付けてやるぜ！',
+    enemyVictoryQuote: 'ハッハッハ！やはりお前など俺の敵ではなかったな！',
+    enemyDefeatQuote: 'ば、馬鹿な…この俺が、まさかこんな所で…！',
+  },
+  {
+    id: 'kanbu',
+    name: '幹部',
+    title: '組織の中核を担う黒幕の一人',
+    aiLevel: 2,
+    introQuote: 'ふん、戦闘員を倒した程度で調子に乗るな。私が直々に相手をしてやろう。',
+    enemyVictoryQuote: '所詮はこの程度。組織の力を思い知ったか。',
+    enemyDefeatQuote: 'こ、これが…貴様の実力か…！総統に伝えねば……！',
+  },
+  {
+    id: 'soutou',
+    name: '総統',
+    title: '悪の組織を統べる者',
+    aiLevel: 3,
+    introQuote: 'よくぞここまで辿り着いた。だが、ここから先は通さん。私の盤上に、敗北の二文字は無い。',
+    enemyVictoryQuote: '所詮、矮小なる者よ。我に挑むには千年早かったな。',
+    enemyDefeatQuote: 'ば……馬鹿な……我が組織が……一介の挑戦者に……！',
+  },
+  {
+    id: 'grey',
+    name: 'グレイ',
+    title: '???',
+    aiLevel: 4,
+    introQuote: '……総統を倒したか。面白い。だが私は組織の者ではない。私はただ、強き者を求めて宇宙を渡る者。さあ、本物の絶望を見せてやろう。',
+    enemyVictoryQuote: '残念だ。お前にはまだ早すぎた。',
+    enemyDefeatQuote: '……見事だ。お前は私を超えた最初の存在だ。この星は、お前が守るに値する。',
+  },
+];
+
+const SAVE_KEY = 'othello_campaign_progress';
+
 let board, currentPlayer, gameOver, cpuThinking;
+let currentStageIndex = 0;
+let stageDelta = 0; // 試合中の優勢/劣勢判定用 (+ ならプレイヤー優勢)
 
 const boardEl = document.getElementById('board');
 const infoEl = document.getElementById('info');
+const stageLabelEl = document.getElementById('stage-label');
 const countBlackEl = document.getElementById('count-black');
 const countWhiteEl = document.getElementById('count-white');
 const scoreBlackEl = document.getElementById('score-black');
 const scoreWhiteEl = document.getElementById('score-white');
+const oppLabelEl = document.getElementById('opp-label');
 
-// 位置の重み（角が最高、角の隣が最低）
+const portraitFrame = document.getElementById('portrait-frame');
+const portraitPlaceholder = document.getElementById('portrait-placeholder');
+const portraitName = document.getElementById('portrait-name');
+const introPortrait = document.getElementById('intro-portrait');
+const introPlaceholder = document.getElementById('intro-placeholder');
+const resultPortrait = document.getElementById('result-portrait');
+const resultPlaceholder = document.getElementById('result-placeholder');
+
+// 画像読込済みかキャッシュ（読込失敗ならプレースホルダ表示）
+const _imageReadyCache = new Map();
+function ensureImage(stage) {
+  if (_imageReadyCache.has(stage.id)) return Promise.resolve(_imageReadyCache.get(stage.id));
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => { _imageReadyCache.set(stage.id, true); resolve(true); };
+    img.onerror = () => { _imageReadyCache.set(stage.id, false); resolve(false); };
+    img.src = `images/${stage.id}.png`;
+  });
+}
+
 const WEIGHT = [
   [100,-20, 10,  5,  5, 10,-20,100],
   [-20,-50, -2, -2, -2, -2,-50,-20],
@@ -289,6 +703,177 @@ const WEIGHT = [
   [100,-20, 10,  5,  5, 10,-20,100],
 ];
 
+// ===== 進行状況の保存/読込 =====
+function loadProgress() {
+  try {
+    const v = localStorage.getItem(SAVE_KEY);
+    return v ? Math.max(0, Math.min(STAGES.length - 1, parseInt(v))) : 0;
+  } catch { return 0; }
+}
+function saveProgress(idx) {
+  try { localStorage.setItem(SAVE_KEY, String(idx)); } catch {}
+}
+
+// ===== イラスト切替 =====
+// state: intro / normal / winning / losing / win / lose
+// 画像は images/{id}.png に 3列×2行スプライトで配置:
+//   [intro][normal][winning] / [losing][win][lose]
+const SPRITE_CLASSES = ['sprite-intro','sprite-normal','sprite-winning','sprite-losing','sprite-win','sprite-lose'];
+
+const _swapTimers = new WeakMap();
+const FADE_MS = 180;
+
+function applySprite(el, stage, state, hasImage) {
+  const newImage = hasImage ? `url("images/${stage.id}.png")` : 'none';
+  const newClass = `sprite-${state}`;
+
+  // 同じ状態 + 同じ画像なら何もしない
+  const currentBg = el.style.backgroundImage || '';
+  const sameImage = currentBg === newImage || (currentBg === '' && newImage === 'none');
+  if (el.classList.contains(newClass) && sameImage) return;
+
+  // 進行中フェードがあればキャンセル
+  const pending = _swapTimers.get(el);
+  if (pending) clearTimeout(pending);
+
+  const isInitial = !SPRITE_CLASSES.some(c => el.classList.contains(c)) || currentBg === '';
+
+  const swap = () => {
+    SPRITE_CLASSES.forEach(c => el.classList.remove(c));
+    el.classList.add(newClass);
+    el.style.backgroundImage = newImage;
+    el.style.opacity = '1';
+    _swapTimers.delete(el);
+  };
+
+  if (isInitial) {
+    // 初回表示はフェードアウトせず即座に表示
+    el.style.opacity = '1';
+    swap();
+    return;
+  }
+
+  // フェードアウト → 差替え → フェードイン
+  el.style.opacity = '0';
+  _swapTimers.set(el, setTimeout(swap, FADE_MS));
+}
+
+function setPortrait(stage, state, target = 'main') {
+  if (target === 'main') {
+    portraitName.textContent = stage.name;
+  }
+
+  ensureImage(stage).then(ok => {
+    const phText = ok ? '' : `[${stage.name}]\n${state}\n(images/${stage.id}.png)`;
+    if (target === 'main') {
+      applySprite(portraitFrame, stage, state, ok);
+      portraitPlaceholder.textContent = phText;
+      portraitPlaceholder.style.whiteSpace = 'pre-line';
+    } else if (target === 'intro') {
+      applySprite(introPortrait, stage, state, ok);
+      introPlaceholder.textContent = phText;
+      introPlaceholder.style.whiteSpace = 'pre-line';
+    } else if (target === 'result') {
+      applySprite(resultPortrait, stage, state, ok);
+      resultPlaceholder.textContent = phText;
+      resultPlaceholder.style.whiteSpace = 'pre-line';
+    }
+  });
+}
+
+// ===== 画面遷移 =====
+function showOverlay(id) {
+  document.querySelectorAll('.overlay').forEach(o => {
+    o.classList.remove('show');
+    // 結果オーバーレイ離脱時は勝敗マーカと粒子を一掃
+    if (o.id === 'result-overlay') {
+      o.classList.remove('win', 'lose');
+      o.querySelectorAll('.confetti, .ash').forEach(p => p.remove());
+    }
+  });
+  if (id) document.getElementById(id).classList.add('show');
+}
+
+// 紙吹雪 (勝利時)
+function spawnConfetti(container, count = 60) {
+  const colors = ['#fc7','#4f8','#7df','#f6c','#ff5','#fff','#9f6'];
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + '%';
+    c.style.background = colors[i % colors.length];
+    c.style.animationDuration = (1.6 + Math.random() * 1.8) + 's';
+    c.style.animationDelay = (Math.random() * 0.6) + 's';
+    c.style.transform = `rotate(${Math.random() * 360}deg)`;
+    if (i % 3 === 0) c.style.borderRadius = '50%';
+    container.appendChild(c);
+  }
+}
+
+// 灰の落下 (敗北時)
+function spawnAsh(container, count = 40) {
+  for (let i = 0; i < count; i++) {
+    const a = document.createElement('div');
+    a.className = 'ash';
+    a.style.left = Math.random() * 100 + '%';
+    a.style.animationDuration = (3 + Math.random() * 3) + 's';
+    a.style.animationDelay = (Math.random() * 1.2) + 's';
+    a.style.opacity = (0.3 + Math.random() * 0.5).toString();
+    a.style.width = a.style.height = (3 + Math.random() * 4) + 'px';
+    container.appendChild(a);
+  }
+}
+
+function returnToTitle() {
+  document.getElementById('title-progress').textContent = buildProgressLine();
+  document.getElementById('continue-btn').style.display =
+    loadProgress() > 0 ? 'inline-block' : 'none';
+  showOverlay('title-overlay');
+}
+
+function buildProgressLine() {
+  const idx = loadProgress();
+  if (idx === 0) return 'まだ誰も倒していない';
+  const cleared = STAGES.slice(0, idx).map(s => s.name).join(' → ');
+  return `撃破済: ${cleared}`;
+}
+
+function startCampaign() {
+  currentStageIndex = 0;
+  saveProgress(0);
+  showStageIntro();
+}
+
+function continueCampaign() {
+  currentStageIndex = loadProgress();
+  showStageIntro();
+}
+
+function showStageIntro() {
+  const stage = STAGES[currentStageIndex];
+  document.getElementById('intro-stage-tag').textContent =
+    stage.id === 'grey' ? '隠しステージ' : `STAGE ${currentStageIndex + 1}`;
+  document.getElementById('intro-name').textContent = stage.name;
+  document.getElementById('intro-title').textContent = stage.title;
+  document.getElementById('intro-quote').textContent = `「${stage.introQuote}」`;
+  setPortrait(stage, 'intro', 'intro');
+  showOverlay('intro-overlay');
+}
+
+function startBattle() {
+  showOverlay(null);
+  const stage = STAGES[currentStageIndex];
+  oppLabelEl.textContent = stage.name;
+  stageLabelEl.textContent =
+    stage.id === 'grey' ? '― 隠しステージ ― VS グレイ'
+                        : `STAGE ${currentStageIndex + 1} ／ ${STAGES.length} ― VS ${stage.name}`;
+  setPortrait(stage, 'normal', 'main');
+  init();
+  render();
+  infoEl.textContent = 'あなたの番です（黒）';
+}
+
+// ===== ゲームロジック =====
 function init() {
   board = Array.from({length: 8}, () => Array(8).fill(EMPTY));
   board[3][3] = WHITE; board[3][4] = BLACK;
@@ -296,6 +881,7 @@ function init() {
   currentPlayer = BLACK;
   gameOver = false;
   cpuThinking = false;
+  stageDelta = 0;
 }
 
 function createBoard() {
@@ -340,6 +926,7 @@ function render() {
     }
   }
   updateScore();
+  updateMoodPortrait();
 }
 
 function updateScore() {
@@ -353,6 +940,29 @@ function updateScore() {
   countWhiteEl.textContent = w;
   scoreBlackEl.classList.toggle('active', currentPlayer === BLACK && !gameOver);
   scoreWhiteEl.classList.toggle('active', currentPlayer === WHITE && !gameOver);
+  stageDelta = b - w;
+}
+
+// 盤面状況に応じて立ち絵差し替え
+function updateMoodPortrait() {
+  if (gameOver) return;
+  const stage = STAGES[currentStageIndex];
+  const total = 64 - board.flat().filter(x => x === EMPTY).length;
+  // 序盤(8石以下)はnormal固定、それ以降は差で切替
+  // stageDelta = 黒(プレイヤー) - 白(敵)
+  let state;
+  if (total <= 8) {
+    state = 'normal';
+  } else if (stageDelta >= 3) {
+    // プレイヤー優勢 → 敵は劣勢(losing)
+    state = 'losing';
+  } else if (stageDelta <= -3) {
+    // プレイヤー劣勢 → 敵は優勢(winning)
+    state = 'winning';
+  } else {
+    state = 'normal';
+  }
+  setPortrait(stage, state, 'main');
 }
 
 function isOnBoard(r, c) { return r >= 0 && r < 8 && c >= 0 && c < 8; }
@@ -405,8 +1015,6 @@ function onCellClick(r, c) {
 }
 
 function animateFlips(r, c, flips, player, callback) {
-  // まず盤面をflip前の状態で描画（flipsはまだ旧色で表示）
-  const validMoves = getValidMoves(board, currentPlayer);
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       const cell = boardEl.children[row * 8 + col];
@@ -418,12 +1026,10 @@ function animateFlips(r, c, flips, player, callback) {
 
       if (board[row][col] !== EMPTY) {
         if (isFlipped) {
-          // ひっくり返る石：旧色で作成し、アニメーションで新色へ
           const oldColor = player === BLACK ? 'white' : 'black';
           const disc = createDisc(oldColor);
           cell.appendChild(disc);
         } else if (isPlaced) {
-          // 新しく置いた石
           const disc = createDisc(player === BLACK ? 'black' : 'white');
           disc.classList.add('placed');
           cell.appendChild(disc);
@@ -436,17 +1042,16 @@ function animateFlips(r, c, flips, player, callback) {
   }
   updateScore();
 
-  // 距離順にフリップをカスケード
   const sortedFlips = flips.map(([fr, fc]) => ({
     fr, fc,
     dist: Math.abs(fr - r) + Math.abs(fc - c)
   })).sort((a, b) => a.dist - b.dist);
 
   let maxDelay = 0;
-  const animDuration = 300; // ms
+  const animDuration = 300;
 
   for (const { fr, fc, dist } of sortedFlips) {
-    const delay = (dist - 1) * 80; // 距離1つごとに80msずらす
+    const delay = (dist - 1) * 80;
     if (delay + animDuration > maxDelay) maxDelay = delay + animDuration;
 
     setTimeout(() => {
@@ -457,7 +1062,6 @@ function animateFlips(r, c, flips, player, callback) {
       const flipClass = player === BLACK ? 'flip-to-black' : 'flip-to-white';
       disc.classList.add(flipClass);
 
-      // アニメーション完了後に正しい状態に更新
       disc.addEventListener('animationend', () => {
         disc.className = 'disc ' + (player === BLACK ? 'black' : 'white');
         disc.innerHTML = '';
@@ -471,7 +1075,10 @@ function animateFlips(r, c, flips, player, callback) {
     }, delay);
   }
 
-  setTimeout(callback, maxDelay + 100);
+  setTimeout(() => {
+    updateMoodPortrait();
+    callback();
+  }, maxDelay + 100);
 }
 
 function nextTurn() {
@@ -482,13 +1089,12 @@ function nextTurn() {
       endGame();
       return;
     }
-    // パス
     currentPlayer = -currentPlayer;
     if (currentPlayer === BLACK) {
-      infoEl.textContent = 'CPUはパス。あなたの番です';
+      infoEl.textContent = `${STAGES[currentStageIndex].name}はパス。あなたの番です`;
       render();
     } else {
-      infoEl.textContent = 'あなたはパス。CPUの番です';
+      infoEl.textContent = `あなたはパス。${STAGES[currentStageIndex].name}の番です`;
       render();
       setTimeout(cpuMove, 600);
     }
@@ -499,7 +1105,7 @@ function nextTurn() {
     infoEl.textContent = 'あなたの番です（黒）';
     render();
   } else {
-    infoEl.textContent = 'CPUが考えています...';
+    infoEl.textContent = `${STAGES[currentStageIndex].name}が考えています...`;
     render();
     cpuThinking = true;
     setTimeout(cpuMove, 500);
@@ -507,16 +1113,13 @@ function nextTurn() {
 }
 
 function cpuMove() {
-  const level = parseInt(document.getElementById('level').value);
+  const level = STAGES[currentStageIndex].aiLevel;
   let move;
 
-  if (level === 1) {
-    move = cpuEasy();
-  } else if (level === 2) {
-    move = cpuMedium();
-  } else {
-    move = cpuHard();
-  }
+  if (level === 1) move = cpuEasy();
+  else if (level === 2) move = cpuMedium();
+  else if (level === 3) move = cpuHard(false);
+  else move = cpuHard(true); // グレイ
 
   const [r, c] = move;
   const flips = applyMove(board, r, c, WHITE);
@@ -527,13 +1130,11 @@ function cpuMove() {
   });
 }
 
-// 弱い：ランダム
 function cpuEasy() {
   const moves = getValidMoves(board, WHITE);
   return moves[Math.floor(Math.random() * moves.length)];
 }
 
-// 普通：重み付き評価
 function cpuMedium() {
   const moves = getValidMoves(board, WHITE);
   let bestScore = -Infinity, bestMove = moves[0];
@@ -544,23 +1145,25 @@ function cpuMedium() {
   return bestMove;
 }
 
-// 強い：ミニマックス（深さ制限）
-function cpuHard() {
+function cpuHard(isBoss) {
   const moves = getValidMoves(board, WHITE);
   const totalDiscs = board.flat().filter(x => x !== EMPTY).length;
-  const depth = totalDiscs > 52 ? 8 : 4;
+  // 通常Hardより深く読む
+  const depth = isBoss
+    ? (totalDiscs > 50 ? 12 : 6)
+    : (totalDiscs > 52 ? 8 : 4);
 
   let bestScore = -Infinity, bestMove = moves[0];
   for (const [r, c] of moves) {
     const nb = cloneBoard(board);
     applyMove(nb, r, c, WHITE);
-    const score = minimax(nb, depth - 1, -Infinity, Infinity, false);
+    const score = minimax(nb, depth - 1, -Infinity, Infinity, false, isBoss);
     if (score > bestScore) { bestScore = score; bestMove = [r, c]; }
   }
   return bestMove;
 }
 
-function evaluate(bd) {
+function evaluate(bd, isBoss) {
   let score = 0;
   const totalDiscs = bd.flat().filter(x => x !== EMPTY).length;
 
@@ -569,7 +1172,6 @@ function evaluate(bd) {
       if (bd[r][c] !== EMPTY)
         score += bd[r][c] === WHITE ? WEIGHT[r][c] : -WEIGHT[r][c];
 
-  // 終盤は枚数重視
   if (totalDiscs > 50) {
     let b = 0, w = 0;
     for (let r = 0; r < 8; r++)
@@ -580,23 +1182,33 @@ function evaluate(bd) {
     score += (w - b) * 10;
   }
 
-  // 合法手の数（機動力）
-  score += getValidMoves(bd, WHITE).length * 3;
-  score -= getValidMoves(bd, BLACK).length * 3;
+  const wMoves = getValidMoves(bd, WHITE).length;
+  const bMoves = getValidMoves(bd, BLACK).length;
+  score += wMoves * (isBoss ? 5 : 3);
+  score -= bMoves * (isBoss ? 5 : 3);
+
+  // 隠しボスは確定石も評価
+  if (isBoss) {
+    const corners = [[0,0],[0,7],[7,0],[7,7]];
+    for (const [r,c] of corners) {
+      if (bd[r][c] === WHITE) score += 25;
+      else if (bd[r][c] === BLACK) score -= 25;
+    }
+  }
 
   return score;
 }
 
-function minimax(bd, depth, alpha, beta, maximizing) {
+function minimax(bd, depth, alpha, beta, maximizing, isBoss) {
   const player = maximizing ? WHITE : BLACK;
   const moves = getValidMoves(bd, player);
 
   if (depth === 0 || (moves.length === 0 && getValidMoves(bd, -player).length === 0)) {
-    return evaluate(bd);
+    return evaluate(bd, isBoss);
   }
 
   if (moves.length === 0) {
-    return minimax(bd, depth - 1, alpha, beta, !maximizing);
+    return minimax(bd, depth - 1, alpha, beta, !maximizing, isBoss);
   }
 
   if (maximizing) {
@@ -604,7 +1216,7 @@ function minimax(bd, depth, alpha, beta, maximizing) {
     for (const [r, c] of moves) {
       const nb = cloneBoard(bd);
       applyMove(nb, r, c, player);
-      const ev = minimax(nb, depth - 1, alpha, beta, false);
+      const ev = minimax(nb, depth - 1, alpha, beta, false, isBoss);
       maxEval = Math.max(maxEval, ev);
       alpha = Math.max(alpha, ev);
       if (beta <= alpha) break;
@@ -615,7 +1227,7 @@ function minimax(bd, depth, alpha, beta, maximizing) {
     for (const [r, c] of moves) {
       const nb = cloneBoard(bd);
       applyMove(nb, r, c, player);
-      const ev = minimax(nb, depth - 1, alpha, beta, true);
+      const ev = minimax(nb, depth - 1, alpha, beta, true, isBoss);
       minEval = Math.min(minEval, ev);
       beta = Math.min(beta, ev);
       if (beta <= alpha) break;
@@ -633,40 +1245,94 @@ function endGame() {
       else if (board[r][c] === WHITE) w++;
     }
 
-  const overlay = document.getElementById('overlay');
+  const stage = STAGES[currentStageIndex];
   const title = document.getElementById('result-title');
   const detail = document.getElementById('result-detail');
+  const quote = document.getElementById('result-quote');
+  const buttons = document.getElementById('result-buttons');
 
+  render();
+
+  buttons.innerHTML = '';
   if (b > w) {
-    title.textContent = 'あなたの勝ち！';
+    // プレイヤー勝利 → 敵は敗北セリフ
+    setPortrait(stage, 'lose', 'result');
+    title.textContent = `${stage.name}を撃破！`;
     title.style.color = '#4f8';
+    quote.textContent = `「${stage.enemyDefeatQuote}」`;
+
+    const isLast = currentStageIndex >= STAGES.length - 1;
+    const beforeBoss = currentStageIndex === STAGES.length - 2; // 総統撃破時
+
+    // 進捗保存
+    const newProgress = Math.min(STAGES.length - 1, currentStageIndex + 1);
+    saveProgress(newProgress);
+
+    if (isLast) {
+      detail.textContent = `黒 ${b} - ${w} 白\n全ステージ制覇！世界に平和が戻った…`;
+      detail.style.whiteSpace = 'pre-line';
+      buttons.innerHTML = `<button onclick="returnToTitle()">タイトルへ</button>`;
+    } else if (beforeBoss) {
+      detail.textContent = `黒 ${b} - ${w} 白\n総統を倒した…だが、何者かの気配が…`;
+      detail.style.whiteSpace = 'pre-line';
+      buttons.innerHTML = `
+        <button onclick="advanceStage()" style="background:#a35;">隠しボスへ</button>
+        <button onclick="returnToTitle()">タイトルへ</button>
+      `;
+    } else {
+      detail.textContent = `黒 ${b} - ${w} 白`;
+      buttons.innerHTML = `
+        <button onclick="advanceStage()">次のステージへ</button>
+        <button onclick="returnToTitle()">タイトルへ</button>
+      `;
+    }
   } else if (w > b) {
-    title.textContent = 'CPUの勝ち';
+    // プレイヤー敗北 → 敵は勝利セリフ
+    setPortrait(stage, 'win', 'result');
+    title.textContent = `${stage.name}に敗北…`;
     title.style.color = '#f66';
+    quote.textContent = `「${stage.enemyVictoryQuote}」`;
+    detail.textContent = `黒 ${b} - ${w} 白`;
+    buttons.innerHTML = `
+      <button onclick="retryStage()">もう一度挑戦</button>
+      <button onclick="returnToTitle()">タイトルへ</button>
+    `;
   } else {
+    setPortrait(stage, 'normal', 'result');
     title.textContent = '引き分け';
     title.style.color = '#7df';
+    quote.textContent = '「……決着はお預けか」';
+    detail.textContent = `黒 ${b} - ${w} 白`;
+    buttons.innerHTML = `
+      <button onclick="retryStage()">もう一度挑戦</button>
+      <button onclick="returnToTitle()">タイトルへ</button>
+    `;
   }
-  detail.textContent = `黒 ${b} - ${w} 白`;
-  overlay.classList.add('show');
+
+  showOverlay('result-overlay');
+  const overlay = document.getElementById('result-overlay');
+  if (b > w) {
+    overlay.classList.add('win');
+    spawnConfetti(overlay, 70);
+  } else if (w > b) {
+    overlay.classList.add('lose');
+    spawnAsh(overlay, 50);
+  }
   infoEl.textContent = 'ゲーム終了';
-  render();
 }
 
-function closeResult() {
-  document.getElementById('overlay').classList.remove('show');
+function advanceStage() {
+  currentStageIndex = Math.min(STAGES.length - 1, currentStageIndex + 1);
+  showStageIntro();
 }
 
-function newGame() {
-  closeResult();
-  init();
-  render();
-  infoEl.textContent = 'あなたの番です（黒）';
+function retryStage() {
+  showStageIntro();
 }
 
 // 初期化
 createBoard();
-newGame();
+returnToTitle();
 </script>
 </body>
 </html>
