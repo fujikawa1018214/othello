@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>オセロゲーム</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #1a1a2e;
+  color: #eee;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #e0e0ff;
+}
+
+#info {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  height: 1.5em;
+  color: #aab;
+}
+
+#score {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.score-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-disc {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.score-disc.black { background: radial-gradient(circle at 35% 35%, #555, #111); }
+.score-disc.white { background: radial-gradient(circle at 35% 35%, #fff, #ccc); }
+
+.score-item.active { color: #7df; font-weight: bold; }
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  background: #111;
+  border: 3px solid #333;
+  border-radius: 6px;
+  padding: 2px;
+  width: min(90vw, 480px);
+  height: min(90vw, 480px);
+}
+
+.cell {
+  background: #0a6e2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  aspect-ratio: 1;
+  perspective: 300px;
+}
+
+.cell:hover { background: #0c8536; }
+.cell.hint::after {
+  content: '';
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  position: absolute;
+}
+
+.disc {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.disc-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  /* 厚みの表現 */
+  box-sizing: border-box;
+}
+
+.disc-black {
+  background: radial-gradient(ellipse at 35% 30%, #666, #222 60%, #111);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.15);
+}
+
+.disc-white {
+  background: radial-gradient(ellipse at 35% 30%, #fff, #e8e8e8 50%, #ccc);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35), inset 0 1px 3px rgba(255,255,255,0.8);
+}
+
+/* 黒が表（0deg）、白が裏（180deg） */
+.disc.black .disc-black { transform: rotateY(0deg); }
+.disc.black .disc-white { transform: rotateY(180deg); }
+.disc.white .disc-black { transform: rotateY(180deg); }
+.disc.white .disc-white { transform: rotateY(0deg); }
+
+/* 新しく置かれた石のアニメーション */
+.disc.placed {
+  animation: placeAnim 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes placeAnim {
+  0%   { transform: scale(0) translateY(-10px); opacity: 0; }
+  60%  { transform: scale(1.1) translateY(-2px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* ひっくり返るアニメーション：3D回転 + 浮き上がり */
+.disc.flip-to-white {
+  animation: flipToWhite 0.3s ease-in-out forwards;
+}
+.disc.flip-to-black {
+  animation: flipToBlack 0.3s ease-in-out forwards;
+}
+
+@keyframes flipToWhite {
+  0%   { transform: rotateY(0deg) translateY(0) scale(1);
+         filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+  30%  { transform: rotateY(60deg) translateY(-12px) scale(1.08);
+         filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
+  50%  { transform: rotateY(90deg) translateY(-16px) scale(1.1);
+         filter: drop-shadow(0 18px 14px rgba(0,0,0,0.25)); }
+  70%  { transform: rotateY(120deg) translateY(-12px) scale(1.08);
+         filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
+  100% { transform: rotateY(180deg) translateY(0) scale(1);
+         filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+}
+
+@keyframes flipToBlack {
+  0%   { transform: rotateY(180deg) translateY(0) scale(1);
+         filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+  30%  { transform: rotateY(240deg) translateY(-12px) scale(1.08);
+         filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
+  50%  { transform: rotateY(270deg) translateY(-16px) scale(1.1);
+         filter: drop-shadow(0 18px 14px rgba(0,0,0,0.25)); }
+  70%  { transform: rotateY(300deg) translateY(-12px) scale(1.08);
+         filter: drop-shadow(0 14px 10px rgba(0,0,0,0.3)); }
+  100% { transform: rotateY(360deg) translateY(0) scale(1);
+         filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+}
+
+#buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 15px;
+}
+
+button {
+  padding: 10px 28px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #2a5298;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+button:hover { background: #3a6ac8; }
+
+#difficulty {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#difficulty label { color: #aab; }
+
+#difficulty select {
+  padding: 6px 12px;
+  font-size: 1rem;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: #2a2a3e;
+  color: #eee;
+}
+
+#overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+#overlay.show { display: flex; }
+
+#result {
+  background: #1e1e3a;
+  padding: 40px 60px;
+  border-radius: 12px;
+  text-align: center;
+  border: 2px solid #445;
+}
+
+#result h2 { font-size: 1.8rem; margin-bottom: 15px; color: #7df; }
+#result p { font-size: 1.2rem; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<h1>オセロ</h1>
+<div id="info">あなたの番です（黒）</div>
+<div id="score">
+  <div class="score-item active" id="score-black">
+    <span class="score-disc black"></span>
+    <span>あなた: <strong id="count-black">2</strong></span>
+  </div>
+  <div class="score-item" id="score-white">
+    <span class="score-disc white"></span>
+    <span>CPU: <strong id="count-white">2</strong></span>
+  </div>
+</div>
+<div id="board"></div>
+<div id="difficulty">
+  <label>CPU強さ:</label>
+  <select id="level">
+    <option value="1">弱い</option>
+    <option value="2" selected>普通</option>
+    <option value="3">強い</option>
+  </select>
+</div>
+<div id="buttons">
+  <button onclick="newGame()">新しいゲーム</button>
+</div>
+
+<div id="overlay">
+  <div id="result">
+    <h2 id="result-title"></h2>
+    <p id="result-detail"></p>
+    <button onclick="closeResult(); newGame();">もう一度</button>
+  </div>
+</div>
+
+<script>
+const BLACK = 1, WHITE = -1, EMPTY = 0;
+const DIRS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+let board, currentPlayer, gameOver, cpuThinking;
+
+const boardEl = document.getElementById('board');
+const infoEl = document.getElementById('info');
+const countBlackEl = document.getElementById('count-black');
+const countWhiteEl = document.getElementById('count-white');
+const scoreBlackEl = document.getElementById('score-black');
+const scoreWhiteEl = document.getElementById('score-white');
+
+// 位置の重み（角が最高、角の隣が最低）
+const WEIGHT = [
+  [100,-20, 10,  5,  5, 10,-20,100],
+  [-20,-50, -2, -2, -2, -2,-50,-20],
+  [ 10, -2,  1,  1,  1,  1, -2, 10],
+  [  5, -2,  1,  0,  0,  1, -2,  5],
+  [  5, -2,  1,  0,  0,  1, -2,  5],
+  [ 10, -2,  1,  1,  1,  1, -2, 10],
+  [-20,-50, -2, -2, -2, -2,-50,-20],
+  [100,-20, 10,  5,  5, 10,-20,100],
+];
+
+function init() {
+  board = Array.from({length: 8}, () => Array(8).fill(EMPTY));
+  board[3][3] = WHITE; board[3][4] = BLACK;
+  board[4][3] = BLACK; board[4][4] = WHITE;
+  currentPlayer = BLACK;
+  gameOver = false;
+  cpuThinking = false;
+}
+
+function createBoard() {
+  boardEl.innerHTML = '';
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.addEventListener('click', () => onCellClick(r, c));
+      boardEl.appendChild(cell);
+    }
+  }
+}
+
+function createDisc(color) {
+  const disc = document.createElement('div');
+  disc.className = 'disc ' + color;
+  const front = document.createElement('div');
+  front.className = 'disc-face disc-black';
+  const back = document.createElement('div');
+  back.className = 'disc-face disc-white';
+  disc.appendChild(front);
+  disc.appendChild(back);
+  return disc;
+}
+
+function render() {
+  const validMoves = getValidMoves(board, currentPlayer);
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const cell = boardEl.children[r * 8 + c];
+      cell.innerHTML = '';
+      cell.classList.remove('hint');
+      if (board[r][c] !== EMPTY) {
+        const disc = createDisc(board[r][c] === BLACK ? 'black' : 'white');
+        cell.appendChild(disc);
+      } else if (currentPlayer === BLACK && !gameOver && validMoves.some(m => m[0]===r && m[1]===c)) {
+        cell.classList.add('hint');
+      }
+    }
+  }
+  updateScore();
+}
+
+function updateScore() {
+  let b = 0, w = 0;
+  for (let r = 0; r < 8; r++)
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === BLACK) b++;
+      else if (board[r][c] === WHITE) w++;
+    }
+  countBlackEl.textContent = b;
+  countWhiteEl.textContent = w;
+  scoreBlackEl.classList.toggle('active', currentPlayer === BLACK && !gameOver);
+  scoreWhiteEl.classList.toggle('active', currentPlayer === WHITE && !gameOver);
+}
+
+function isOnBoard(r, c) { return r >= 0 && r < 8 && c >= 0 && c < 8; }
+
+function getFlips(bd, r, c, player) {
+  if (bd[r][c] !== EMPTY) return [];
+  const opp = -player;
+  const allFlips = [];
+  for (const [dr, dc] of DIRS) {
+    const flips = [];
+    let nr = r + dr, nc = c + dc;
+    while (isOnBoard(nr, nc) && bd[nr][nc] === opp) {
+      flips.push([nr, nc]);
+      nr += dr; nc += dc;
+    }
+    if (flips.length > 0 && isOnBoard(nr, nc) && bd[nr][nc] === player) {
+      allFlips.push(...flips);
+    }
+  }
+  return allFlips;
+}
+
+function getValidMoves(bd, player) {
+  const moves = [];
+  for (let r = 0; r < 8; r++)
+    for (let c = 0; c < 8; c++)
+      if (getFlips(bd, r, c, player).length > 0) moves.push([r, c]);
+  return moves;
+}
+
+function applyMove(bd, r, c, player) {
+  const flips = getFlips(bd, r, c, player);
+  bd[r][c] = player;
+  for (const [fr, fc] of flips) bd[fr][fc] = player;
+  return flips;
+}
+
+function cloneBoard(bd) { return bd.map(row => [...row]); }
+
+function onCellClick(r, c) {
+  if (gameOver || cpuThinking || currentPlayer !== BLACK) return;
+  const flips = getFlips(board, r, c, BLACK);
+  if (flips.length === 0) return;
+
+  applyMove(board, r, c, BLACK);
+  animateFlips(r, c, flips, BLACK, () => {
+    currentPlayer = WHITE;
+    nextTurn();
+  });
+}
+
+function animateFlips(r, c, flips, player, callback) {
+  // まず盤面をflip前の状態で描画（flipsはまだ旧色で表示）
+  const validMoves = getValidMoves(board, currentPlayer);
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const cell = boardEl.children[row * 8 + col];
+      cell.innerHTML = '';
+      cell.classList.remove('hint');
+
+      const isFlipped = flips.some(f => f[0] === row && f[1] === col);
+      const isPlaced = row === r && col === c;
+
+      if (board[row][col] !== EMPTY) {
+        if (isFlipped) {
+          // ひっくり返る石：旧色で作成し、アニメーションで新色へ
+          const oldColor = player === BLACK ? 'white' : 'black';
+          const disc = createDisc(oldColor);
+          cell.appendChild(disc);
+        } else if (isPlaced) {
+          // 新しく置いた石
+          const disc = createDisc(player === BLACK ? 'black' : 'white');
+          disc.classList.add('placed');
+          cell.appendChild(disc);
+        } else {
+          const disc = createDisc(board[row][col] === BLACK ? 'black' : 'white');
+          cell.appendChild(disc);
+        }
+      }
+    }
+  }
+  updateScore();
+
+  // 距離順にフリップをカスケード
+  const sortedFlips = flips.map(([fr, fc]) => ({
+    fr, fc,
+    dist: Math.abs(fr - r) + Math.abs(fc - c)
+  })).sort((a, b) => a.dist - b.dist);
+
+  let maxDelay = 0;
+  const animDuration = 300; // ms
+
+  for (const { fr, fc, dist } of sortedFlips) {
+    const delay = (dist - 1) * 80; // 距離1つごとに80msずらす
+    if (delay + animDuration > maxDelay) maxDelay = delay + animDuration;
+
+    setTimeout(() => {
+      const cell = boardEl.children[fr * 8 + fc];
+      const disc = cell.querySelector('.disc');
+      if (!disc) return;
+
+      const flipClass = player === BLACK ? 'flip-to-black' : 'flip-to-white';
+      disc.classList.add(flipClass);
+
+      // アニメーション完了後に正しい状態に更新
+      disc.addEventListener('animationend', () => {
+        disc.className = 'disc ' + (player === BLACK ? 'black' : 'white');
+        disc.innerHTML = '';
+        const front = document.createElement('div');
+        front.className = 'disc-face disc-black';
+        const back = document.createElement('div');
+        back.className = 'disc-face disc-white';
+        disc.appendChild(front);
+        disc.appendChild(back);
+      }, { once: true });
+    }, delay);
+  }
+
+  setTimeout(callback, maxDelay + 100);
+}
+
+function nextTurn() {
+  const moves = getValidMoves(board, currentPlayer);
+  if (moves.length === 0) {
+    const oppMoves = getValidMoves(board, -currentPlayer);
+    if (oppMoves.length === 0) {
+      endGame();
+      return;
+    }
+    // パス
+    currentPlayer = -currentPlayer;
+    if (currentPlayer === BLACK) {
+      infoEl.textContent = 'CPUはパス。あなたの番です';
+      render();
+    } else {
+      infoEl.textContent = 'あなたはパス。CPUの番です';
+      render();
+      setTimeout(cpuMove, 600);
+    }
+    return;
+  }
+
+  if (currentPlayer === BLACK) {
+    infoEl.textContent = 'あなたの番です（黒）';
+    render();
+  } else {
+    infoEl.textContent = 'CPUが考えています...';
+    render();
+    cpuThinking = true;
+    setTimeout(cpuMove, 500);
+  }
+}
+
+function cpuMove() {
+  const level = parseInt(document.getElementById('level').value);
+  let move;
+
+  if (level === 1) {
+    move = cpuEasy();
+  } else if (level === 2) {
+    move = cpuMedium();
+  } else {
+    move = cpuHard();
+  }
+
+  const [r, c] = move;
+  const flips = applyMove(board, r, c, WHITE);
+  animateFlips(r, c, flips, WHITE, () => {
+    cpuThinking = false;
+    currentPlayer = BLACK;
+    nextTurn();
+  });
+}
+
+// 弱い：ランダム
+function cpuEasy() {
+  const moves = getValidMoves(board, WHITE);
+  return moves[Math.floor(Math.random() * moves.length)];
+}
+
+// 普通：重み付き評価
+function cpuMedium() {
+  const moves = getValidMoves(board, WHITE);
+  let bestScore = -Infinity, bestMove = moves[0];
+  for (const [r, c] of moves) {
+    const score = WEIGHT[r][c] + getFlips(board, r, c, WHITE).length;
+    if (score > bestScore) { bestScore = score; bestMove = [r, c]; }
+  }
+  return bestMove;
+}
+
+// 強い：ミニマックス（深さ制限）
+function cpuHard() {
+  const moves = getValidMoves(board, WHITE);
+  const totalDiscs = board.flat().filter(x => x !== EMPTY).length;
+  const depth = totalDiscs > 52 ? 8 : 4;
+
+  let bestScore = -Infinity, bestMove = moves[0];
+  for (const [r, c] of moves) {
+    const nb = cloneBoard(board);
+    applyMove(nb, r, c, WHITE);
+    const score = minimax(nb, depth - 1, -Infinity, Infinity, false);
+    if (score > bestScore) { bestScore = score; bestMove = [r, c]; }
+  }
+  return bestMove;
+}
+
+function evaluate(bd) {
+  let score = 0;
+  const totalDiscs = bd.flat().filter(x => x !== EMPTY).length;
+
+  for (let r = 0; r < 8; r++)
+    for (let c = 0; c < 8; c++)
+      if (bd[r][c] !== EMPTY)
+        score += bd[r][c] === WHITE ? WEIGHT[r][c] : -WEIGHT[r][c];
+
+  // 終盤は枚数重視
+  if (totalDiscs > 50) {
+    let b = 0, w = 0;
+    for (let r = 0; r < 8; r++)
+      for (let c = 0; c < 8; c++) {
+        if (bd[r][c] === BLACK) b++;
+        else if (bd[r][c] === WHITE) w++;
+      }
+    score += (w - b) * 10;
+  }
+
+  // 合法手の数（機動力）
+  score += getValidMoves(bd, WHITE).length * 3;
+  score -= getValidMoves(bd, BLACK).length * 3;
+
+  return score;
+}
+
+function minimax(bd, depth, alpha, beta, maximizing) {
+  const player = maximizing ? WHITE : BLACK;
+  const moves = getValidMoves(bd, player);
+
+  if (depth === 0 || (moves.length === 0 && getValidMoves(bd, -player).length === 0)) {
+    return evaluate(bd);
+  }
+
+  if (moves.length === 0) {
+    return minimax(bd, depth - 1, alpha, beta, !maximizing);
+  }
+
+  if (maximizing) {
+    let maxEval = -Infinity;
+    for (const [r, c] of moves) {
+      const nb = cloneBoard(bd);
+      applyMove(nb, r, c, player);
+      const ev = minimax(nb, depth - 1, alpha, beta, false);
+      maxEval = Math.max(maxEval, ev);
+      alpha = Math.max(alpha, ev);
+      if (beta <= alpha) break;
+    }
+    return maxEval;
+  } else {
+    let minEval = Infinity;
+    for (const [r, c] of moves) {
+      const nb = cloneBoard(bd);
+      applyMove(nb, r, c, player);
+      const ev = minimax(nb, depth - 1, alpha, beta, true);
+      minEval = Math.min(minEval, ev);
+      beta = Math.min(beta, ev);
+      if (beta <= alpha) break;
+    }
+    return minEval;
+  }
+}
+
+function endGame() {
+  gameOver = true;
+  let b = 0, w = 0;
+  for (let r = 0; r < 8; r++)
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === BLACK) b++;
+      else if (board[r][c] === WHITE) w++;
+    }
+
+  const overlay = document.getElementById('overlay');
+  const title = document.getElementById('result-title');
+  const detail = document.getElementById('result-detail');
+
+  if (b > w) {
+    title.textContent = 'あなたの勝ち！';
+    title.style.color = '#4f8';
+  } else if (w > b) {
+    title.textContent = 'CPUの勝ち';
+    title.style.color = '#f66';
+  } else {
+    title.textContent = '引き分け';
+    title.style.color = '#7df';
+  }
+  detail.textContent = `黒 ${b} - ${w} 白`;
+  overlay.classList.add('show');
+  infoEl.textContent = 'ゲーム終了';
+  render();
+}
+
+function closeResult() {
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function newGame() {
+  closeResult();
+  init();
+  render();
+  infoEl.textContent = 'あなたの番です（黒）';
+}
+
+// 初期化
+createBoard();
+newGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# Claude Code のローカル設定(個人環境依存なので公開しない)
+.claude/
+
+# OS が勝手に作るゴミファイル
+Thumbs.db
+.DS_Store
