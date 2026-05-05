@@ -3,12 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>オセロ ～悪の組織を打ち倒せ～</title>
+<title>白黒戦隊オセロマン!</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  background: #1a1a2e;
+  background-color: #1a1a2e;
+  background-image: url('images/title.png');
+  background-repeat: repeat;
+  background-size: 280px auto;
+  background-position: center;
+  background-attachment: fixed;
   color: #eee;
   font-family: 'Segoe UI', sans-serif;
   display: flex;
@@ -16,13 +21,18 @@ body {
   align-items: center;
   min-height: 100vh;
   padding: 20px;
+  position: relative;
 }
-
-h1 {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  color: #e0e0ff;
+/* タイル画像を薄くするためのオーバーレイ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 46, 0.88);
+  pointer-events: none;
+  z-index: 0;
 }
+body > * { position: relative; z-index: 1; }
 
 #stage-label {
   font-size: 1rem;
@@ -332,8 +342,52 @@ button:hover { background: #3a6ac8; }
   letter-spacing: 0.1em;
 }
 
-.title-modal h2 { font-size: 2.2rem; color: #fc7; margin-bottom: 8px; }
-.title-sub { color: #8af; margin-bottom: 24px; }
+.title-modal { background: linear-gradient(160deg, #14141e, #1a1a2e 60%, #181824); border-color: #fc7; box-shadow: 0 0 40px rgba(252,199,119,0.35); }
+
+/* 色選択ボタン */
+.color-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 24px;
+  background: #2a2a44;
+  border: 2px solid #555;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  min-width: 160px;
+}
+.color-choice:hover {
+  transform: translateY(-3px);
+  border-color: #fc7;
+  background: #3a3a5a;
+  box-shadow: 0 6px 16px rgba(252,199,119,0.35);
+}
+.color-disc-large {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  margin-bottom: 4px;
+}
+.color-disc-large.black { background: radial-gradient(ellipse at 35% 30%, #666, #222 60%, #111); box-shadow: 0 3px 10px rgba(0,0,0,0.6), inset 0 1px 3px rgba(255,255,255,0.15); }
+.color-disc-large.white { background: radial-gradient(ellipse at 35% 30%, #fff, #e8e8e8 50%, #ccc); box-shadow: 0 3px 10px rgba(0,0,0,0.4), inset 0 1px 4px rgba(255,255,255,0.9); }
+.color-sub { font-size: 0.8rem; font-weight: normal; color: #8af; }
+#title-logo {
+  display: block;
+  max-width: 100%;
+  width: 480px;
+  height: auto;
+  margin: -8px auto 16px;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.7));
+  animation: titleLogoFloat 3.5s ease-in-out infinite;
+}
+@keyframes titleLogoFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-6px) scale(1.02); }
+}
 
 /* ==================== 演出: 試合前 ==================== */
 #intro-overlay.show {
@@ -540,7 +594,6 @@ button:hover { background: #3a6ac8; }
 </head>
 <body>
 
-<h1>オセロ ～悪の組織を打ち倒せ～</h1>
 <div id="stage-label"></div>
 <div id="info">あなたの番です（黒）</div>
 
@@ -554,13 +607,13 @@ button:hover { background: #3a6ac8; }
 
   <div id="center-area">
     <div id="score">
-      <div class="score-item active" id="score-black">
+      <div class="score-item" id="score-black">
         <span class="score-disc black"></span>
-        <span>あなた: <strong id="count-black">2</strong></span>
+        <span><span id="label-black">あなた</span>: <strong id="count-black">2</strong></span>
       </div>
       <div class="score-item" id="score-white">
         <span class="score-disc white"></span>
-        <span><span id="opp-label">敵</span>: <strong id="count-white">2</strong></span>
+        <span><span id="label-white">敵</span>: <strong id="count-white">2</strong></span>
       </div>
     </div>
     <div id="board"></div>
@@ -574,13 +627,35 @@ button:hover { background: #3a6ac8; }
 <!-- タイトル画面 -->
 <div id="title-overlay" class="overlay show">
   <div class="modal title-modal">
-    <h2>オセロ</h2>
-    <div class="title-sub">～悪の組織を打ち倒せ～</div>
-    <p>君は世界を救う盤上の戦士。<br>悪の組織の刺客たちを順に打ち破れ。</p>
+    <img id="title-logo" src="images/title.png" alt="白黒戦隊オセロマン!">
+    <p>君は正義のヒーロー、<strong style="color:#fc7;">白黒戦隊オセロマン</strong>。<br>悪の組織の刺客たちを盤上で打ち破れ！</p>
     <div id="title-progress" style="color:#aab;font-size:0.9rem;margin-bottom:16px;"></div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
       <button onclick="startCampaign()">最初から</button>
       <button id="continue-btn" onclick="continueCampaign()" style="display:none;background:#5a8;">続きから</button>
+    </div>
+  </div>
+</div>
+
+<!-- 色選択画面 -->
+<div id="color-overlay" class="overlay">
+  <div class="modal">
+    <h2 style="color:#fc7;margin-bottom:8px;">あなたの戦う色を選べ</h2>
+    <p style="color:#aab;margin-bottom:24px;">選んだ色によって、立ちはだかる敵の姿が変わる…</p>
+    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;">
+      <button class="color-choice color-black" onclick="chooseColor('black')">
+        <div class="color-disc-large black"></div>
+        <div>黒で戦う</div>
+        <div class="color-sub">先手 / 男性敵</div>
+      </button>
+      <button class="color-choice color-white" onclick="chooseColor('white')">
+        <div class="color-disc-large white"></div>
+        <div>白で戦う</div>
+        <div class="color-sub">後手 / 女性敵</div>
+      </button>
+    </div>
+    <div style="margin-top:18px;">
+      <button onclick="returnToTitle()" style="background:#444;">タイトルへ戻る</button>
     </div>
   </div>
 </div>
@@ -622,46 +697,48 @@ const STAGES = [
   {
     id: 'sentouin',
     name: '戦闘員',
-    title: '組織の下っ端兵士',
+    title: '組織の下っ端ザコ兵士',
     aiLevel: 1,
-    introQuote: 'ククク…我が悪の組織にようこそ。お前のような奴、この戦闘員様が片付けてやるぜ！',
-    enemyVictoryQuote: 'ハッハッハ！やはりお前など俺の敵ではなかったな！',
-    enemyDefeatQuote: 'ば、馬鹿な…この俺が、まさかこんな所で…！',
+    introQuote: 'うひゃひゃ！白黒戦隊オセロマン参上ってか！お、俺ぁ戦闘員のヒラだけどよぉ、お前くらい余裕なんだよぉ！来いやぁ！',
+    enemyVictoryQuote: 'うひょー！や、やったぜぇ！戦闘員の俺がオセロマンを倒したぞ！幹部に昇進だぁ〜！',
+    enemyDefeatQuote: 'ぎゃーっ！や、やっぱりオセロマンは強ぇぇ！お、覚えてろよぉ〜！(逃走)',
   },
   {
     id: 'kanbu',
     name: '幹部',
     title: '組織の中核を担う黒幕の一人',
     aiLevel: 2,
-    introQuote: 'ふん、戦闘員を倒した程度で調子に乗るな。私が直々に相手をしてやろう。',
-    enemyVictoryQuote: '所詮はこの程度。組織の力を思い知ったか。',
-    enemyDefeatQuote: 'こ、これが…貴様の実力か…！総統に伝えねば……！',
+    introQuote: 'ふん、戦闘員を倒した程度で調子に乗るな、オセロマン。私が直々に相手をしてやろう。',
+    enemyVictoryQuote: 'フッ…所詮はこの程度か、白黒戦隊オセロマンも。組織の力を思い知ったか。',
+    enemyDefeatQuote: 'こ、これが…オセロマンの実力か…！総統に伝えねば……！',
   },
   {
     id: 'soutou',
     name: '総統',
     title: '悪の組織を統べる者',
     aiLevel: 3,
-    introQuote: 'よくぞここまで辿り着いた。だが、ここから先は通さん。私の盤上に、敗北の二文字は無い。',
-    enemyVictoryQuote: '所詮、矮小なる者よ。我に挑むには千年早かったな。',
-    enemyDefeatQuote: 'ば……馬鹿な……我が組織が……一介の挑戦者に……！',
+    introQuote: 'よくぞここまで辿り着いた、白黒戦隊オセロマン。だが、ここから先は通さん。私の盤上に、敗北の二文字は無い。',
+    enemyVictoryQuote: '所詮、オセロマンとはこの程度であったか。我に挑むには千年早かったな。',
+    enemyDefeatQuote: 'ば……馬鹿な……我が組織が……オセロマンに……！',
   },
   {
     id: 'grey',
     name: 'グレイ',
     title: '???',
     aiLevel: 4,
-    introQuote: '……総統を倒したか。面白い。だが私は組織の者ではない。私はただ、強き者を求めて宇宙を渡る者。さあ、本物の絶望を見せてやろう。',
-    enemyVictoryQuote: '残念だ。お前にはまだ早すぎた。',
-    enemyDefeatQuote: '……見事だ。お前は私を超えた最初の存在だ。この星は、お前が守るに値する。',
+    introQuote: '……総統を倒したか、オセロマン。面白い。だが私は組織の者ではない。私はただ、強き者を求めて宇宙を渡る者。さあ、本物の絶望を見せてやろう。',
+    enemyVictoryQuote: '残念だ、オセロマン。お前にはまだ早すぎた。',
+    enemyDefeatQuote: '……見事だ、オセロマン。お前は私を超えた最初の存在だ。この星は、お前が守るに値する。',
   },
 ];
 
 const SAVE_KEY = 'othello_campaign_progress';
+const COLOR_KEY = 'othello_player_color';
 
 let board, currentPlayer, gameOver, cpuThinking;
 let currentStageIndex = 0;
 let stageDelta = 0; // 試合中の優勢/劣勢判定用 (+ ならプレイヤー優勢)
+let playerColor = BLACK; // プレイヤーの石色 (BLACK or WHITE)
 
 const boardEl = document.getElementById('board');
 const infoEl = document.getElementById('info');
@@ -670,7 +747,8 @@ const countBlackEl = document.getElementById('count-black');
 const countWhiteEl = document.getElementById('count-white');
 const scoreBlackEl = document.getElementById('score-black');
 const scoreWhiteEl = document.getElementById('score-white');
-const oppLabelEl = document.getElementById('opp-label');
+const labelBlackEl = document.getElementById('label-black');
+const labelWhiteEl = document.getElementById('label-white');
 
 const portraitFrame = document.getElementById('portrait-frame');
 const portraitPlaceholder = document.getElementById('portrait-placeholder');
@@ -681,14 +759,17 @@ const resultPortrait = document.getElementById('result-portrait');
 const resultPlaceholder = document.getElementById('result-placeholder');
 
 // 画像読込済みかキャッシュ（読込失敗ならプレースホルダ表示）
+// キーは "ディレクトリ:stageId" で色違いごとに区別
 const _imageReadyCache = new Map();
+function imagePath(stage) { return `${imageDir()}/${stage.id}.png`; }
 function ensureImage(stage) {
-  if (_imageReadyCache.has(stage.id)) return Promise.resolve(_imageReadyCache.get(stage.id));
+  const path = imagePath(stage);
+  if (_imageReadyCache.has(path)) return Promise.resolve(_imageReadyCache.get(path));
   return new Promise((resolve) => {
     const img = new Image();
-    img.onload = () => { _imageReadyCache.set(stage.id, true); resolve(true); };
-    img.onerror = () => { _imageReadyCache.set(stage.id, false); resolve(false); };
-    img.src = `images/${stage.id}.png`;
+    img.onload = () => { _imageReadyCache.set(path, true); resolve(true); };
+    img.onerror = () => { _imageReadyCache.set(path, false); resolve(false); };
+    img.src = path;
   });
 }
 
@@ -714,17 +795,66 @@ function saveProgress(idx) {
   try { localStorage.setItem(SAVE_KEY, String(idx)); } catch {}
 }
 
+function loadPlayerColor() {
+  try {
+    const v = localStorage.getItem(COLOR_KEY);
+    return v === 'white' ? WHITE : BLACK;
+  } catch { return BLACK; }
+}
+function savePlayerColor(color) {
+  try { localStorage.setItem(COLOR_KEY, color === WHITE ? 'white' : 'black'); } catch {}
+}
+
+// 敵画像のディレクトリ (プレイヤー色で切替)
+function imageDir() { return playerColor === WHITE ? 'images/fameleenemy' : 'images'; }
+
 // ===== イラスト切替 =====
 // state: intro / normal / winning / losing / win / lose
 // 画像は images/{id}.png に 3列×2行スプライトで配置:
 //   [intro][normal][winning] / [losing][win][lose]
 const SPRITE_CLASSES = ['sprite-intro','sprite-normal','sprite-winning','sprite-losing','sprite-win','sprite-lose'];
 
+// 各状態の基準 background-position (sprite-* クラスと同期)
+const SPRITE_BASE_X = {
+  intro: '1.5%', normal: '50%', winning: '98.5%',
+  losing: '1.5%', win: '50%', lose: '98.5%',
+};
+const SPRITE_BASE_Y = {
+  intro: '4.2%', normal: '4.2%', winning: '4.2%',
+  losing: '95.8%', win: '95.8%', lose: '95.8%',
+};
+
+// キャラ別の表示位置オフセット (px, 正の値: x=右へ, y=下へ)
+// 値: 数値 → 全状態統一 / オブジェクト → state 個別指定 / { x, y } で軸別指定可
+const PORTRAIT_OFFSETS = {
+  kanbu: { x: 3 },
+  soutou: {
+    x: 3,
+    y: { intro: 10, normal: 10, winning: 10, losing: 11, win: 11, lose: 10 },
+  },
+};
+
+function getOffset(stageId, state, axis) {
+  const v = PORTRAIT_OFFSETS[stageId];
+  if (v == null) return 0;
+  // 数値: 全状態統一(Y軸のみ後方互換)
+  if (typeof v === 'number') return axis === 'y' ? v : 0;
+  // { x, y }
+  if ('x' in v || 'y' in v) {
+    const av = v[axis];
+    if (av == null) return 0;
+    if (typeof av === 'number') return av;
+    return av[state] || 0;
+  }
+  // { intro: ..., normal: ... } 形式 (Y軸のみ後方互換)
+  return axis === 'y' ? (v[state] || 0) : 0;
+}
+
 const _swapTimers = new WeakMap();
 const FADE_MS = 180;
 
 function applySprite(el, stage, state, hasImage) {
-  const newImage = hasImage ? `url("images/${stage.id}.png")` : 'none';
+  const newImage = hasImage ? `url("${imagePath(stage)}")` : 'none';
   const newClass = `sprite-${state}`;
 
   // 同じ状態 + 同じ画像なら何もしない
@@ -742,6 +872,13 @@ function applySprite(el, stage, state, hasImage) {
     SPRITE_CLASSES.forEach(c => el.classList.remove(c));
     el.classList.add(newClass);
     el.style.backgroundImage = newImage;
+    // キャラ別オフセット適用 (X/Y)
+    const offX = getOffset(stage.id, state, 'x');
+    const offY = getOffset(stage.id, state, 'y');
+    el.style.backgroundPositionX = offX !== 0
+      ? `calc(${SPRITE_BASE_X[state]} + ${offX}px)` : '';
+    el.style.backgroundPositionY = offY !== 0
+      ? `calc(${SPRITE_BASE_Y[state]} + ${offY}px)` : '';
     el.style.opacity = '1';
     _swapTimers.delete(el);
   };
@@ -764,7 +901,7 @@ function setPortrait(stage, state, target = 'main') {
   }
 
   ensureImage(stage).then(ok => {
-    const phText = ok ? '' : `[${stage.name}]\n${state}\n(images/${stage.id}.png)`;
+    const phText = ok ? '' : `[${stage.name}]\n${state}\n(${imagePath(stage)})`;
     if (target === 'main') {
       applySprite(portraitFrame, stage, state, ok);
       portraitPlaceholder.textContent = phText;
@@ -841,11 +978,18 @@ function buildProgressLine() {
 function startCampaign() {
   currentStageIndex = 0;
   saveProgress(0);
-  showStageIntro();
+  showOverlay('color-overlay');
 }
 
 function continueCampaign() {
   currentStageIndex = loadProgress();
+  playerColor = loadPlayerColor();
+  showStageIntro();
+}
+
+function chooseColor(c) {
+  playerColor = c === 'white' ? WHITE : BLACK;
+  savePlayerColor(playerColor);
   showStageIntro();
 }
 
@@ -863,14 +1007,28 @@ function showStageIntro() {
 function startBattle() {
   showOverlay(null);
   const stage = STAGES[currentStageIndex];
-  oppLabelEl.textContent = stage.name;
+  // スコアラベル: プレイヤーは選んだ色側に「あなた」、反対色側に敵名
+  if (playerColor === BLACK) {
+    labelBlackEl.textContent = 'あなた';
+    labelWhiteEl.textContent = stage.name;
+  } else {
+    labelBlackEl.textContent = stage.name;
+    labelWhiteEl.textContent = 'あなた';
+  }
   stageLabelEl.textContent =
     stage.id === 'grey' ? '― 隠しステージ ― VS グレイ'
                         : `STAGE ${currentStageIndex + 1} ／ ${STAGES.length} ― VS ${stage.name}`;
   setPortrait(stage, 'normal', 'main');
   init();
   render();
-  infoEl.textContent = 'あなたの番です（黒）';
+  // BLACKは常に先手。プレイヤーがWHITEなら敵(BLACK)から先に動く
+  if (playerColor === BLACK) {
+    infoEl.textContent = 'あなたの番です（黒・先手）';
+  } else {
+    infoEl.textContent = `${stage.name}の番です（黒・先手）`;
+    cpuThinking = true;
+    setTimeout(cpuMove, 700);
+  }
 }
 
 // ===== ゲームロジック =====
@@ -920,7 +1078,7 @@ function render() {
       if (board[r][c] !== EMPTY) {
         const disc = createDisc(board[r][c] === BLACK ? 'black' : 'white');
         cell.appendChild(disc);
-      } else if (currentPlayer === BLACK && !gameOver && validMoves.some(m => m[0]===r && m[1]===c)) {
+      } else if (currentPlayer === playerColor && !gameOver && validMoves.some(m => m[0]===r && m[1]===c)) {
         cell.classList.add('hint');
       }
     }
@@ -940,7 +1098,10 @@ function updateScore() {
   countWhiteEl.textContent = w;
   scoreBlackEl.classList.toggle('active', currentPlayer === BLACK && !gameOver);
   scoreWhiteEl.classList.toggle('active', currentPlayer === WHITE && !gameOver);
-  stageDelta = b - w;
+  // stageDelta = プレイヤー石数 - 敵石数 (+ なら優勢)
+  const playerCount = playerColor === BLACK ? b : w;
+  const cpuCount = playerColor === BLACK ? w : b;
+  stageDelta = playerCount - cpuCount;
 }
 
 // 盤面状況に応じて立ち絵差し替え
@@ -1003,13 +1164,13 @@ function applyMove(bd, r, c, player) {
 function cloneBoard(bd) { return bd.map(row => [...row]); }
 
 function onCellClick(r, c) {
-  if (gameOver || cpuThinking || currentPlayer !== BLACK) return;
-  const flips = getFlips(board, r, c, BLACK);
+  if (gameOver || cpuThinking || currentPlayer !== playerColor) return;
+  const flips = getFlips(board, r, c, playerColor);
   if (flips.length === 0) return;
 
-  applyMove(board, r, c, BLACK);
-  animateFlips(r, c, flips, BLACK, () => {
-    currentPlayer = WHITE;
+  applyMove(board, r, c, playerColor);
+  animateFlips(r, c, flips, playerColor, () => {
+    currentPlayer = -playerColor;
     nextTurn();
   });
 }
@@ -1082,6 +1243,7 @@ function animateFlips(r, c, flips, player, callback) {
 }
 
 function nextTurn() {
+  const stageName = STAGES[currentStageIndex].name;
   const moves = getValidMoves(board, currentPlayer);
   if (moves.length === 0) {
     const oppMoves = getValidMoves(board, -currentPlayer);
@@ -1090,22 +1252,23 @@ function nextTurn() {
       return;
     }
     currentPlayer = -currentPlayer;
-    if (currentPlayer === BLACK) {
-      infoEl.textContent = `${STAGES[currentStageIndex].name}はパス。あなたの番です`;
+    if (currentPlayer === playerColor) {
+      infoEl.textContent = `${stageName}はパス。あなたの番です`;
       render();
     } else {
-      infoEl.textContent = `あなたはパス。${STAGES[currentStageIndex].name}の番です`;
+      infoEl.textContent = `あなたはパス。${stageName}の番です`;
       render();
+      cpuThinking = true;
       setTimeout(cpuMove, 600);
     }
     return;
   }
 
-  if (currentPlayer === BLACK) {
-    infoEl.textContent = 'あなたの番です（黒）';
+  if (currentPlayer === playerColor) {
+    infoEl.textContent = `あなたの番です（${playerColor === BLACK ? '黒' : '白'}）`;
     render();
   } else {
-    infoEl.textContent = `${STAGES[currentStageIndex].name}が考えています...`;
+    infoEl.textContent = `${stageName}が考えています...`;
     render();
     cpuThinking = true;
     setTimeout(cpuMove, 500);
@@ -1113,42 +1276,42 @@ function nextTurn() {
 }
 
 function cpuMove() {
+  const cpuColor = -playerColor;
   const level = STAGES[currentStageIndex].aiLevel;
   let move;
 
-  if (level === 1) move = cpuEasy();
-  else if (level === 2) move = cpuMedium();
-  else if (level === 3) move = cpuHard(false);
-  else move = cpuHard(true); // グレイ
+  if (level === 1) move = cpuEasy(cpuColor);
+  else if (level === 2) move = cpuMedium(cpuColor);
+  else if (level === 3) move = cpuHard(cpuColor, false);
+  else move = cpuHard(cpuColor, true); // グレイ
 
   const [r, c] = move;
-  const flips = applyMove(board, r, c, WHITE);
-  animateFlips(r, c, flips, WHITE, () => {
+  const flips = applyMove(board, r, c, cpuColor);
+  animateFlips(r, c, flips, cpuColor, () => {
     cpuThinking = false;
-    currentPlayer = BLACK;
+    currentPlayer = playerColor;
     nextTurn();
   });
 }
 
-function cpuEasy() {
-  const moves = getValidMoves(board, WHITE);
+function cpuEasy(cpuColor) {
+  const moves = getValidMoves(board, cpuColor);
   return moves[Math.floor(Math.random() * moves.length)];
 }
 
-function cpuMedium() {
-  const moves = getValidMoves(board, WHITE);
+function cpuMedium(cpuColor) {
+  const moves = getValidMoves(board, cpuColor);
   let bestScore = -Infinity, bestMove = moves[0];
   for (const [r, c] of moves) {
-    const score = WEIGHT[r][c] + getFlips(board, r, c, WHITE).length;
+    const score = WEIGHT[r][c] + getFlips(board, r, c, cpuColor).length;
     if (score > bestScore) { bestScore = score; bestMove = [r, c]; }
   }
   return bestMove;
 }
 
-function cpuHard(isBoss) {
-  const moves = getValidMoves(board, WHITE);
+function cpuHard(cpuColor, isBoss) {
+  const moves = getValidMoves(board, cpuColor);
   const totalDiscs = board.flat().filter(x => x !== EMPTY).length;
-  // 通常Hardより深く読む
   const depth = isBoss
     ? (totalDiscs > 50 ? 12 : 6)
     : (totalDiscs > 52 ? 8 : 4);
@@ -1156,59 +1319,59 @@ function cpuHard(isBoss) {
   let bestScore = -Infinity, bestMove = moves[0];
   for (const [r, c] of moves) {
     const nb = cloneBoard(board);
-    applyMove(nb, r, c, WHITE);
-    const score = minimax(nb, depth - 1, -Infinity, Infinity, false, isBoss);
+    applyMove(nb, r, c, cpuColor);
+    const score = minimax(nb, depth - 1, -Infinity, Infinity, false, cpuColor, isBoss);
     if (score > bestScore) { bestScore = score; bestMove = [r, c]; }
   }
   return bestMove;
 }
 
-function evaluate(bd, isBoss) {
+function evaluate(bd, cpuColor, isBoss) {
   let score = 0;
   const totalDiscs = bd.flat().filter(x => x !== EMPTY).length;
+  const oppColor = -cpuColor;
 
   for (let r = 0; r < 8; r++)
     for (let c = 0; c < 8; c++)
       if (bd[r][c] !== EMPTY)
-        score += bd[r][c] === WHITE ? WEIGHT[r][c] : -WEIGHT[r][c];
+        score += bd[r][c] === cpuColor ? WEIGHT[r][c] : -WEIGHT[r][c];
 
   if (totalDiscs > 50) {
-    let b = 0, w = 0;
+    let cpuCount = 0, oppCount = 0;
     for (let r = 0; r < 8; r++)
       for (let c = 0; c < 8; c++) {
-        if (bd[r][c] === BLACK) b++;
-        else if (bd[r][c] === WHITE) w++;
+        if (bd[r][c] === cpuColor) cpuCount++;
+        else if (bd[r][c] === oppColor) oppCount++;
       }
-    score += (w - b) * 10;
+    score += (cpuCount - oppCount) * 10;
   }
 
-  const wMoves = getValidMoves(bd, WHITE).length;
-  const bMoves = getValidMoves(bd, BLACK).length;
-  score += wMoves * (isBoss ? 5 : 3);
-  score -= bMoves * (isBoss ? 5 : 3);
+  const cpuMoves = getValidMoves(bd, cpuColor).length;
+  const oppMoves = getValidMoves(bd, oppColor).length;
+  score += cpuMoves * (isBoss ? 5 : 3);
+  score -= oppMoves * (isBoss ? 5 : 3);
 
-  // 隠しボスは確定石も評価
   if (isBoss) {
     const corners = [[0,0],[0,7],[7,0],[7,7]];
     for (const [r,c] of corners) {
-      if (bd[r][c] === WHITE) score += 25;
-      else if (bd[r][c] === BLACK) score -= 25;
+      if (bd[r][c] === cpuColor) score += 25;
+      else if (bd[r][c] === oppColor) score -= 25;
     }
   }
 
   return score;
 }
 
-function minimax(bd, depth, alpha, beta, maximizing, isBoss) {
-  const player = maximizing ? WHITE : BLACK;
+function minimax(bd, depth, alpha, beta, maximizing, cpuColor, isBoss) {
+  const player = maximizing ? cpuColor : -cpuColor;
   const moves = getValidMoves(bd, player);
 
   if (depth === 0 || (moves.length === 0 && getValidMoves(bd, -player).length === 0)) {
-    return evaluate(bd, isBoss);
+    return evaluate(bd, cpuColor, isBoss);
   }
 
   if (moves.length === 0) {
-    return minimax(bd, depth - 1, alpha, beta, !maximizing, isBoss);
+    return minimax(bd, depth - 1, alpha, beta, !maximizing, cpuColor, isBoss);
   }
 
   if (maximizing) {
@@ -1216,7 +1379,7 @@ function minimax(bd, depth, alpha, beta, maximizing, isBoss) {
     for (const [r, c] of moves) {
       const nb = cloneBoard(bd);
       applyMove(nb, r, c, player);
-      const ev = minimax(nb, depth - 1, alpha, beta, false, isBoss);
+      const ev = minimax(nb, depth - 1, alpha, beta, false, cpuColor, isBoss);
       maxEval = Math.max(maxEval, ev);
       alpha = Math.max(alpha, ev);
       if (beta <= alpha) break;
@@ -1227,7 +1390,7 @@ function minimax(bd, depth, alpha, beta, maximizing, isBoss) {
     for (const [r, c] of moves) {
       const nb = cloneBoard(bd);
       applyMove(nb, r, c, player);
-      const ev = minimax(nb, depth - 1, alpha, beta, true, isBoss);
+      const ev = minimax(nb, depth - 1, alpha, beta, true, cpuColor, isBoss);
       minEval = Math.min(minEval, ev);
       beta = Math.min(beta, ev);
       if (beta <= alpha) break;
@@ -1253,8 +1416,13 @@ function endGame() {
 
   render();
 
+  // プレイヤー視点のスコア
+  const playerCount = playerColor === BLACK ? b : w;
+  const cpuCount = playerColor === BLACK ? w : b;
+  const scoreLine = playerColor === BLACK ? `黒 ${b} - ${w} 白` : `白 ${w} - ${b} 黒`;
+
   buttons.innerHTML = '';
-  if (b > w) {
+  if (playerCount > cpuCount) {
     // プレイヤー勝利 → 敵は敗北セリフ
     setPortrait(stage, 'lose', 'result');
     title.textContent = `${stage.name}を撃破！`;
@@ -1262,37 +1430,36 @@ function endGame() {
     quote.textContent = `「${stage.enemyDefeatQuote}」`;
 
     const isLast = currentStageIndex >= STAGES.length - 1;
-    const beforeBoss = currentStageIndex === STAGES.length - 2; // 総統撃破時
+    const beforeBoss = currentStageIndex === STAGES.length - 2;
 
-    // 進捗保存
     const newProgress = Math.min(STAGES.length - 1, currentStageIndex + 1);
     saveProgress(newProgress);
 
     if (isLast) {
-      detail.textContent = `黒 ${b} - ${w} 白\n全ステージ制覇！世界に平和が戻った…`;
+      detail.textContent = `${scoreLine}\n全ステージ制覇！世界に平和が戻った…`;
       detail.style.whiteSpace = 'pre-line';
       buttons.innerHTML = `<button onclick="returnToTitle()">タイトルへ</button>`;
     } else if (beforeBoss) {
-      detail.textContent = `黒 ${b} - ${w} 白\n総統を倒した…だが、何者かの気配が…`;
+      detail.textContent = `${scoreLine}\n総統を倒した…だが、何者かの気配が…`;
       detail.style.whiteSpace = 'pre-line';
       buttons.innerHTML = `
         <button onclick="advanceStage()" style="background:#a35;">隠しボスへ</button>
         <button onclick="returnToTitle()">タイトルへ</button>
       `;
     } else {
-      detail.textContent = `黒 ${b} - ${w} 白`;
+      detail.textContent = scoreLine;
       buttons.innerHTML = `
         <button onclick="advanceStage()">次のステージへ</button>
         <button onclick="returnToTitle()">タイトルへ</button>
       `;
     }
-  } else if (w > b) {
+  } else if (cpuCount > playerCount) {
     // プレイヤー敗北 → 敵は勝利セリフ
     setPortrait(stage, 'win', 'result');
     title.textContent = `${stage.name}に敗北…`;
     title.style.color = '#f66';
     quote.textContent = `「${stage.enemyVictoryQuote}」`;
-    detail.textContent = `黒 ${b} - ${w} 白`;
+    detail.textContent = scoreLine;
     buttons.innerHTML = `
       <button onclick="retryStage()">もう一度挑戦</button>
       <button onclick="returnToTitle()">タイトルへ</button>
@@ -1302,7 +1469,7 @@ function endGame() {
     title.textContent = '引き分け';
     title.style.color = '#7df';
     quote.textContent = '「……決着はお預けか」';
-    detail.textContent = `黒 ${b} - ${w} 白`;
+    detail.textContent = scoreLine;
     buttons.innerHTML = `
       <button onclick="retryStage()">もう一度挑戦</button>
       <button onclick="returnToTitle()">タイトルへ</button>
@@ -1311,10 +1478,10 @@ function endGame() {
 
   showOverlay('result-overlay');
   const overlay = document.getElementById('result-overlay');
-  if (b > w) {
+  if (playerCount > cpuCount) {
     overlay.classList.add('win');
     spawnConfetti(overlay, 70);
-  } else if (w > b) {
+  } else if (cpuCount > playerCount) {
     overlay.classList.add('lose');
     spawnAsh(overlay, 50);
   }
