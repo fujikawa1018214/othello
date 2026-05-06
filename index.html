@@ -342,7 +342,104 @@ button:hover { background: #3a6ac8; }
   letter-spacing: 0.1em;
 }
 
-.title-modal { background: linear-gradient(160deg, #14141e, #1a1a2e 60%, #181824); border-color: #fc7; box-shadow: 0 0 40px rgba(252,199,119,0.35); }
+/* ==================== タイトル画面 演出 ==================== */
+#title-overlay { overflow: hidden; }
+#title-overlay.show {
+  background:
+    radial-gradient(ellipse at center, rgba(120,40,120,0.35), rgba(0,0,0,0.92)),
+    linear-gradient(180deg, #1a1a2e, #0a0a14);
+}
+#title-overlay.show::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 200vmax; height: 200vmax;
+  margin-top: -100vmax; margin-left: -100vmax;
+  pointer-events: none;
+  background: repeating-conic-gradient(from 0deg,
+    rgba(252,199,119,0.07) 0deg 1.5deg,
+    transparent 1.5deg 12deg);
+  animation: titleSpin 60s linear infinite;
+  z-index: 0;
+}
+@keyframes titleSpin { to { transform: rotate(360deg); } }
+
+.title-particles {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden; z-index: 0;
+}
+.title-particle {
+  position: absolute; bottom: -20px;
+  background: rgba(252,199,119,0.7);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(252,199,119,0.9), 0 0 20px rgba(255,150,50,0.5);
+  animation: titleFloat linear infinite;
+}
+@keyframes titleFloat {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(-115vh) translateX(60px); opacity: 0; }
+}
+
+.title-modal {
+  background: linear-gradient(160deg, #1e1432, #1a1a2e 50%, #2a1844);
+  border: 3px solid #fc7;
+  box-shadow:
+    0 0 60px rgba(252,199,119,0.6),
+    0 0 120px rgba(252,140,80,0.35),
+    inset 0 0 40px rgba(120,40,120,0.3);
+  position: relative;
+  overflow: hidden;
+  animation:
+    titleModalEnter 0.8s cubic-bezier(0.16, 1.3, 0.4, 1),
+    titleModalGlow 2.5s ease-in-out 0.8s infinite alternate;
+  z-index: 1;
+}
+@keyframes titleModalEnter {
+  0%   { transform: scale(0.6) translateY(40px); opacity: 0; filter: blur(12px); }
+  60%  { transform: scale(1.04) translateY(-6px); filter: blur(0); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes titleModalGlow {
+  0%   { box-shadow: 0 0 60px rgba(252,199,119,0.6), 0 0 120px rgba(252,140,80,0.35), inset 0 0 40px rgba(120,40,120,0.3); }
+  100% { box-shadow: 0 0 100px rgba(252,199,119,0.95), 0 0 180px rgba(252,140,80,0.6), inset 0 0 60px rgba(180,80,200,0.4); }
+}
+.title-modal::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%; right: -50%; bottom: -50%;
+  background: conic-gradient(from 0deg, transparent 78%, rgba(252,199,119,0.18));
+  animation: titleBeam 5s linear infinite;
+  pointer-events: none;
+}
+@keyframes titleBeam { to { transform: rotate(360deg); } }
+.title-modal > * { position: relative; z-index: 1; }
+
+.title-modal button {
+  font-size: 1.1rem;
+  padding: 14px 36px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  background: linear-gradient(160deg, #2a5298, #3a6ac8);
+  border: 2px solid rgba(252,199,119,0.5);
+  box-shadow: 0 0 14px rgba(252,199,119,0.4);
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.title-modal button:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 0 24px rgba(252,199,119,0.9), 0 6px 18px rgba(0,0,0,0.5);
+}
+.title-modal button::before { content: '▶ '; color: #ffd84d; }
+#continue-btn {
+  background: linear-gradient(160deg, #4f8 0%, #5b9 100%) !important;
+  color: #14141e;
+  border-color: #afa;
+  box-shadow: 0 0 14px rgba(80,255,140,0.5) !important;
+}
+#continue-btn:hover {
+  box-shadow: 0 0 24px rgba(80,255,140,0.95), 0 6px 18px rgba(0,0,0,0.5) !important;
+}
 
 /* 色選択ボタン */
 .color-choice {
@@ -375,97 +472,537 @@ button:hover { background: #3a6ac8; }
 .color-disc-large.black { background: radial-gradient(ellipse at 35% 30%, #666, #222 60%, #111); box-shadow: 0 3px 10px rgba(0,0,0,0.6), inset 0 1px 3px rgba(255,255,255,0.15); }
 .color-disc-large.white { background: radial-gradient(ellipse at 35% 30%, #fff, #e8e8e8 50%, #ccc); box-shadow: 0 3px 10px rgba(0,0,0,0.4), inset 0 1px 4px rgba(255,255,255,0.9); }
 .color-sub { font-size: 0.8rem; font-weight: normal; color: #8af; }
+
+/* ストーリー枠 (色/先攻後攻 選択画面用) */
+.story-block {
+  text-align: left;
+  font-size: 0.92rem;
+  color: #d8d8e8;
+  line-height: 1.75;
+  margin: 0 auto 22px;
+  max-width: 480px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid #fc7;
+  border-radius: 4px;
+  white-space: pre-line;
+}
+.story-block .ep {
+  display: block;
+  color: #fc7;
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+.story-block .speaker {
+  color: #8af;
+  font-weight: bold;
+}
+.story-block .aside {
+  color: #889;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* 試合開始バナー (盤上「開始！」) */
+#board { position: relative; overflow: visible; }
+#board-banner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-size: clamp(4rem, 18vmin, 11rem);
+  font-weight: 900;
+  font-style: italic;
+  color: #ffd84d;
+  text-shadow:
+    0 0 24px #fc7,
+    0 0 50px #f50,
+    0 0 80px #fc7,
+    8px 8px 0 rgba(0,0,0,0.85);
+  -webkit-text-stroke: 4px #b00;
+  letter-spacing: 0.15em;
+  opacity: 0;
+  z-index: 20;
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
+}
+#board-banner.show {
+  animation: boardBannerShow 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes boardBannerShow {
+  0%   { transform: scale(7) rotate(-18deg); opacity: 0; filter: blur(20px); }
+  25%  { transform: scale(0.85) rotate(6deg); opacity: 1; filter: blur(0); }
+  50%  { transform: scale(1.06) rotate(-2deg); opacity: 1; }
+  75%  { transform: scale(1.0)  rotate(0); opacity: 1; }
+  100% { transform: scale(2.4)  rotate(0); opacity: 0; }
+}
+
+/* 先攻/後攻ボタン */
+.turn-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 28px;
+  background: #2a2a44;
+  border: 2px solid #555;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  min-width: 160px;
+}
+.turn-choice:hover {
+  transform: translateY(-3px);
+  border-color: #fc7;
+  background: #3a3a5a;
+  box-shadow: 0 6px 16px rgba(252,199,119,0.35);
+}
+
+/* ==================== 角取得演出 ==================== */
+.cell.corner-burst {
+  z-index: 5;
+}
+.cell.corner-burst::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 800%; height: 800%;
+  margin-top: -400%; margin-left: -400%;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,255,200,0.95) 0%,
+    rgba(255,210,60,0.85) 18%,
+    rgba(255,140,30,0.6) 35%,
+    rgba(255,60,30,0.3) 55%,
+    transparent 75%);
+  pointer-events: none;
+  transform: scale(0);
+  animation: cornerBurstRing 1.4s cubic-bezier(0.16, 0.84, 0.44, 1) forwards;
+  z-index: 6;
+}
+.cell.corner-burst::after {
+  content: '★';
+  position: absolute;
+  top: 50%; left: 50%;
+  font-size: 200%;
+  color: #ffd84d;
+  text-shadow: 0 0 14px #ffd84d, 0 0 28px #ff8800, 0 0 50px #fff;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0) rotate(0);
+  animation: cornerStarSpin 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  z-index: 7;
+}
+@keyframes cornerBurstRing {
+  0%   { transform: scale(0); opacity: 1; }
+  40%  { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+@keyframes cornerStarSpin {
+  0%   { transform: translate(-50%, -50%) scale(0)   rotate(-180deg); opacity: 0; }
+  30%  { transform: translate(-50%, -50%) scale(1.6) rotate(180deg);  opacity: 1; }
+  60%  { transform: translate(-50%, -50%) scale(1.2) rotate(360deg);  opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.5) rotate(540deg);  opacity: 0; }
+}
+
+/* 全画面ゴールドフラッシュ(角取得時) */
+#corner-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(255,215,0,0);
+  z-index: 50;
+}
+#corner-flash.active {
+  animation: cornerScreenFlash 0.7s ease-out;
+}
+@keyframes cornerScreenFlash {
+  0%   { background: rgba(255,215,0,0.5); box-shadow: inset 0 0 200px rgba(255,150,0,0.8); }
+  100% { background: rgba(255,215,0,0); box-shadow: inset 0 0 0 transparent; }
+}
+
+/* 軽い画面シェイク */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  20%      { transform: translate(-4px, 2px); }
+  40%      { transform: translate(4px, -2px); }
+  60%      { transform: translate(-3px, -2px); }
+  80%      { transform: translate(3px, 2px); }
+}
+body.shake { animation: screenShake 0.4s ease-in-out; }
+
+/* ポートレートシェイク (敵が角を取られた時) */
+@keyframes portraitShake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-4px, 2px) rotate(-1.5deg); }
+  20%, 40%, 60%, 80%      { transform: translate(4px, -2px) rotate(1.5deg); }
+}
+#portrait-frame.shake {
+  animation: portraitShake 0.45s ease-in-out 3;
+}
+
+/* ==================== 勝敗演出オーバーレイ ==================== */
+#dramatic-overlay {
+  background: radial-gradient(circle at center, rgba(0,0,0,0.5), rgba(0,0,0,0.95));
+  flex-direction: column;
+  gap: 24px;
+  overflow: hidden;
+}
+#dramatic-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+#dramatic-overlay.show #dramatic-flash {
+  animation: dramaticFlashAnim 0.4s ease-out forwards;
+}
+@keyframes dramaticFlashAnim {
+  0%   { opacity: 1; background: rgba(255,255,255,0.95); }
+  100% { opacity: 0; background: rgba(255,255,255,0); }
+}
+
+/* 爆発エフェクト */
+#dramatic-explosion {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  margin-top: -100px;
+  margin-left: -100px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,255,200,1) 0%,
+    rgba(255,210,60,0.95) 12%,
+    rgba(255,140,30,0.8) 28%,
+    rgba(255,60,30,0.5) 50%,
+    rgba(180,30,30,0.2) 70%,
+    transparent 85%);
+  pointer-events: none;
+  transform: scale(0);
+  opacity: 0;
+  filter: blur(2px);
+}
+#dramatic-overlay.show #dramatic-explosion {
+  animation: explosionAnim 1.2s cubic-bezier(0.16, 0.84, 0.32, 1) 0.05s forwards;
+}
+@keyframes explosionAnim {
+  0%   { transform: scale(0); opacity: 1; }
+  15%  { transform: scale(4); opacity: 1; }
+  35%  { transform: scale(10); opacity: 0.85; }
+  60%  { transform: scale(20); opacity: 0.5; }
+  100% { transform: scale(35); opacity: 0; }
+}
+/* 集中線(放射状) */
+#dramatic-overlay.show::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 200vmax; height: 200vmax;
+  margin-top: -100vmax; margin-left: -100vmax;
+  pointer-events: none;
+  background:
+    repeating-conic-gradient(from 0deg,
+      rgba(255,220,100,0.18) 0deg 2deg,
+      transparent 2deg 8deg);
+  animation: speedlinesSpin 1.4s linear, speedlinesFade 1.4s ease-out forwards;
+}
+@keyframes speedlinesSpin {
+  0%   { transform: rotate(0deg) scale(0.2); }
+  100% { transform: rotate(45deg) scale(1); }
+}
+@keyframes speedlinesFade {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+#dramatic-frame { display: none; }
+#dramatic-text {
+  font-size: clamp(6rem, 32vmin, 20rem);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-shadow:
+    0 0 24px var(--dramatic-color, #fc7),
+    0 0 48px var(--dramatic-color, #fc7),
+    0 0 80px rgba(255,200,0,0.7),
+    8px 8px 0 rgba(0,0,0,0.75);
+  color: var(--dramatic-color, #fc7);
+  z-index: 3;
+  position: relative;
+  -webkit-text-stroke: 3px rgba(0,0,0,0.7);
+}
+#dramatic-overlay.show #dramatic-text {
+  animation: dramaticTextEnter 0.5s cubic-bezier(0.34, 1.6, 0.5, 1) 0.4s both,
+             dramaticTextPulse 0.6s ease-in-out 0.9s infinite alternate;
+}
+@keyframes dramaticTextEnter {
+  0%   { transform: scale(0) translateY(40px); opacity: 0; letter-spacing: 2em; }
+  60%  { transform: scale(1.25) translateY(-6px); opacity: 1; letter-spacing: 0.15em; }
+  100% { transform: scale(1) translateY(0); }
+}
+@keyframes dramaticTextPulse {
+  0%   { transform: scale(1) rotate(-0.5deg); filter: brightness(1); }
+  100% { transform: scale(1.08) rotate(0.5deg); filter: brightness(1.5); }
+}
+/* 勝利/敗北で色を変える */
+#dramatic-overlay.win  { --dramatic-color: #4f8; }
+#dramatic-overlay.lose { --dramatic-color: #f66; }
 #title-logo {
   display: block;
   max-width: 100%;
-  width: 480px;
+  width: 520px;
   height: auto;
   margin: -8px auto 16px;
-  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.7));
-  animation: titleLogoFloat 3.5s ease-in-out infinite;
+  filter:
+    drop-shadow(0 6px 14px rgba(0,0,0,0.8))
+    drop-shadow(0 0 18px rgba(252,199,119,0.6));
+  animation:
+    titleLogoSlamIn 0.9s cubic-bezier(0.16, 1.4, 0.4, 1),
+    titleLogoFloat 3.5s ease-in-out 0.9s infinite;
+}
+@keyframes titleLogoSlamIn {
+  0%   { transform: scale(2.5) translateY(-100px) rotate(-8deg); opacity: 0; filter: blur(20px); }
+  60%  { transform: scale(0.95) translateY(8px) rotate(3deg); opacity: 1; filter: blur(0); }
+  85%  { transform: scale(1.03) translateY(-3px) rotate(-1deg); }
+  100% { transform: scale(1) translateY(0) rotate(0); }
 }
 @keyframes titleLogoFloat {
   0%, 100% { transform: translateY(0) scale(1); }
   50%      { transform: translateY(-6px) scale(1.02); }
 }
 
-/* ==================== 演出: 試合前 ==================== */
+/* ==================== 演出: 試合前 (強化版) ==================== */
+#intro-overlay {
+  overflow: hidden;
+  flex-direction: column;
+}
 #intro-overlay.show {
   background:
     repeating-linear-gradient(45deg, rgba(252,199,119,0.06) 0 24px, rgba(0,0,0,0) 24px 48px),
-    radial-gradient(circle at center, rgba(120,40,120,0.4), rgba(0,0,0,0.92));
+    radial-gradient(circle at center, rgba(120,40,120,0.45), rgba(0,0,0,0.95));
   animation: introOverlayFlash 0.5s ease-out;
 }
 @keyframes introOverlayFlash {
-  0% { background-color: rgba(252,199,119,0.5); }
-  50% { background-color: rgba(80,30,100,0.6); }
+  0%   { background-color: rgba(255,255,255,0.85); }
+  20%  { background-color: rgba(252,199,119,0.6); }
+  60%  { background-color: rgba(80,30,100,0.7); }
   100% { background-color: rgba(0,0,0,0.85); }
 }
+
+/* 集中線(放射状)で試合前にも勢い */
+#intro-overlay.show::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 200vmax; height: 200vmax;
+  margin-top: -100vmax; margin-left: -100vmax;
+  pointer-events: none;
+  background:
+    repeating-conic-gradient(from 0deg,
+      rgba(252,199,119,0.15) 0deg 1.5deg,
+      transparent 1.5deg 8deg);
+  animation: introSpeedlinesSpin 1.8s linear, introSpeedlinesFade 1.8s ease-out forwards;
+  z-index: 0;
+}
+@keyframes introSpeedlinesSpin {
+  0%   { transform: rotate(0deg) scale(0.2); }
+  100% { transform: rotate(40deg) scale(1); }
+}
+@keyframes introSpeedlinesFade {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 横切る斜めバナー (3本) */
+.intro-banner {
+  position: absolute;
+  height: 7vh;
+  width: 220vw;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  z-index: 1;
+}
+.intro-banner-1 {
+  top: 22%;
+  background: linear-gradient(90deg, transparent, rgba(252,199,119,0.85) 35%, rgba(255,150,50,0.95) 50%, rgba(252,199,119,0.85) 65%, transparent);
+  transform: translateX(-110%) rotate(-10deg);
+}
+.intro-banner-2 {
+  top: 58%;
+  height: 5vh;
+  background: linear-gradient(90deg, transparent, rgba(180,80,255,0.7) 40%, rgba(120,40,200,0.9) 50%, rgba(180,80,255,0.7) 60%, transparent);
+  transform: translateX(110%) rotate(7deg);
+}
+.intro-banner-3 {
+  top: 78%;
+  height: 3vh;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5) 50%, transparent);
+  transform: translateX(-110%) rotate(-5deg);
+}
+#intro-overlay.show .intro-banner-1 { animation: bannerLR 0.7s cubic-bezier(0.16,0.84,0.32,1) 0s forwards; }
+#intro-overlay.show .intro-banner-2 { animation: bannerRL 0.7s cubic-bezier(0.16,0.84,0.32,1) 0.1s forwards; }
+#intro-overlay.show .intro-banner-3 { animation: bannerLR 0.7s cubic-bezier(0.16,0.84,0.32,1) 0.2s forwards; }
+@keyframes bannerLR {
+  0%   { transform: translateX(-110%) rotate(var(--bnr-rot, -10deg)); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateX(110%) rotate(var(--bnr-rot, -10deg)); opacity: 0; }
+}
+@keyframes bannerRL {
+  0%   { transform: translateX(110%) rotate(var(--bnr-rot, 7deg)); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateX(-110%) rotate(var(--bnr-rot, 7deg)); opacity: 0; }
+}
+.intro-banner-1 { --bnr-rot: -10deg; }
+.intro-banner-2 { --bnr-rot: 7deg; }
+.intro-banner-3 { --bnr-rot: -5deg; }
+
+/* "VS" 大インパクトバッジ */
+#intro-vs-badge {
+  position: absolute;
+  top: 50%; left: 50%;
+  font-size: clamp(8rem, 22vmin, 18rem);
+  font-weight: 900;
+  font-style: italic;
+  color: #ffd84d;
+  text-shadow:
+    0 0 18px #fc7,
+    0 0 36px #f50,
+    0 0 80px #fc7,
+    8px 8px 0 rgba(0,0,0,0.7);
+  -webkit-text-stroke: 5px #b00;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 4;
+  letter-spacing: 0.05em;
+  transform: translate(-50%, -50%);
+}
+#intro-overlay.show #intro-vs-badge {
+  animation:
+    vsImpact 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s forwards,
+    vsFadeOut 0.35s ease-in 0.55s forwards;
+}
+@keyframes vsImpact {
+  0%   { transform: translate(-50%, -50%) scale(7) rotate(-18deg); opacity: 0; filter: blur(20px); }
+  60%  { transform: translate(-50%, -50%) scale(0.85) rotate(8deg);  opacity: 1; filter: blur(0); }
+  100% { transform: translate(-50%, -50%) scale(1)    rotate(-3deg); opacity: 1; }
+}
+@keyframes vsFadeOut {
+  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-3deg); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2) rotate(-3deg); }
+}
+
+/* モーダル登場 (VS消失と入れ替わり) */
 #intro-overlay.show .modal {
-  animation: introModalEnter 0.7s cubic-bezier(0.16, 1.3, 0.4, 1);
+  animation: introModalEnter 0.6s cubic-bezier(0.16, 1.3, 0.4, 1) 0.4s both;
   background: linear-gradient(160deg, #2a1e3e, #1a1a2e 60%, #1e1432);
   border: 2px solid #fc7;
-  box-shadow: 0 0 40px rgba(252,199,119,0.4), inset 0 0 30px rgba(120,40,120,0.3);
+  box-shadow: 0 0 50px rgba(252,199,119,0.5), inset 0 0 30px rgba(120,40,120,0.3);
   position: relative;
   overflow: hidden;
+  z-index: 2;
 }
 #intro-overlay.show .modal::before {
   content: '';
   position: absolute;
   top: -50%; left: -50%; right: -50%; bottom: -50%;
-  background: conic-gradient(from 0deg, transparent 80%, rgba(252,199,119,0.2));
-  animation: introBeam 4s linear infinite;
+  background: conic-gradient(from 0deg, transparent 78%, rgba(252,199,119,0.25));
+  animation: introBeam 3.5s linear infinite;
   pointer-events: none;
 }
 @keyframes introBeam { to { transform: rotate(360deg); } }
 @keyframes introModalEnter {
-  0%   { transform: scale(0.6) translateY(40px); opacity: 0; filter: blur(8px); }
-  60%  { transform: scale(1.05) translateY(-4px); filter: blur(0); }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
+  0%   { transform: scale(0.5) translateY(50px) rotate(-2deg); opacity: 0; filter: blur(10px); }
+  60%  { transform: scale(1.06) translateY(-6px) rotate(0.5deg); filter: blur(0); }
+  100% { transform: scale(1) translateY(0) rotate(0); opacity: 1; }
 }
+
+/* ステージタグ: スパッと落下+脈動 */
 #intro-overlay.show .stage-tag {
-  animation: stageTagPulse 1.4s ease-in-out infinite;
-  box-shadow: 0 0 16px rgba(252,199,119,0.6);
+  animation: stageTagSlam 0.45s cubic-bezier(0.34, 1.6, 0.5, 1) 0.55s both,
+             stageTagPulse 1.2s ease-in-out 1s infinite;
+  box-shadow: 0 0 16px rgba(252,199,119,0.7);
   position: relative;
   z-index: 1;
+}
+@keyframes stageTagSlam {
+  0%   { transform: translateY(-80px) scale(2.4) rotate(-6deg); opacity: 0; letter-spacing: 1.5em; }
+  60%  { transform: translateY(6px) scale(1.1) rotate(2deg); opacity: 1; letter-spacing: 0.2em; }
+  100% { transform: translateY(0) scale(1) rotate(0); letter-spacing: 0.1em; }
 }
 @keyframes stageTagPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(252,199,119,0.6); }
-  50% { transform: scale(1.08); box-shadow: 0 0 28px rgba(252,199,119,1), 0 0 50px rgba(252,150,80,0.6); }
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 16px rgba(252,199,119,0.7); }
+  50%      { transform: scale(1.1);  box-shadow: 0 0 32px rgba(252,199,119,1), 0 0 60px rgba(252,150,80,0.7); }
 }
+
+/* ポートレート: 斜めスラッシュ風登場 */
 #intro-overlay.show .intro-portrait {
-  animation: introPortraitDrop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 25px rgba(252,199,119,0.3);
+  animation: portraitSlashIn 0.55s cubic-bezier(0.16, 0.84, 0.32, 1) 0.7s both;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 30px rgba(252,199,119,0.4);
   position: relative;
   z-index: 1;
 }
-@keyframes introPortraitDrop {
-  0%   { opacity: 0; transform: translateY(-30px) scale(0.85) rotate(-3deg); }
-  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+@keyframes portraitSlashIn {
+  0%   { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); transform: translateX(-30px) rotate(-2deg) scale(0.9); }
+  60%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: translateX(8px) rotate(1deg) scale(1.04); }
+  100% { transform: translateX(0) rotate(0) scale(1); }
 }
+
+/* キャラ名: 衝撃インパクト + フリッカ */
 #intro-overlay.show .intro-name {
-  animation: introNameZoom 0.8s ease-out 0.35s both;
-  text-shadow: 0 0 12px rgba(252,199,119,0.6);
+  animation:
+    nameSlam 0.4s cubic-bezier(0.16, 1.4, 0.4, 1) 1.05s both,
+    nameFlicker 0.12s linear 1.45s 3;
+  text-shadow: 0 0 14px rgba(252,199,119,0.8), 0 0 28px rgba(255,140,40,0.4), 3px 3px 0 rgba(0,0,0,0.7);
   position: relative;
   z-index: 1;
 }
-@keyframes introNameZoom {
-  0%   { opacity: 0; letter-spacing: 1em; transform: scale(1.4); filter: blur(6px); }
-  100% { opacity: 1; letter-spacing: 0.05em; transform: scale(1); filter: blur(0); }
+@keyframes nameSlam {
+  0%   { transform: scale(2.5) skewX(-25deg); opacity: 0; filter: blur(8px); }
+  60%  { transform: scale(0.92) skewX(4deg); opacity: 1; filter: blur(0); }
+  100% { transform: scale(1) skewX(0); }
 }
-#intro-overlay.show .intro-title,
+@keyframes nameFlicker {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+/* 役職タイトル: スライドフェード */
+#intro-overlay.show .intro-title {
+  animation: titleSlide 0.4s ease-out 1.3s both;
+  position: relative;
+  z-index: 1;
+}
+@keyframes titleSlide {
+  0%   { opacity: 0; transform: translateY(-12px); letter-spacing: 0.5em; }
+  100% { opacity: 1; transform: translateY(0); letter-spacing: 0; }
+}
+
+/* セリフ: スライドイン */
 #intro-overlay.show .intro-quote {
-  animation: introQuoteSlide 0.5s ease-out 0.6s both;
+  animation: quoteAppear 0.5s ease-out 1.5s both;
   position: relative;
   z-index: 1;
 }
-#intro-overlay.show .intro-quote { animation-delay: 0.75s; }
-@keyframes introQuoteSlide {
-  0%   { opacity: 0; transform: translateX(-30px); }
+@keyframes quoteAppear {
+  0%   { opacity: 0; transform: translateX(-25px); }
   100% { opacity: 1; transform: translateX(0); }
 }
+
+/* ボタン */
 #intro-overlay.show button {
-  animation: introBtnAppear 0.4s ease-out 1s both;
+  animation: introBtnAppear 0.4s ease-out 1.85s both;
   position: relative;
   z-index: 1;
 }
@@ -473,6 +1010,93 @@ button:hover { background: #3a6ac8; }
   0%   { opacity: 0; transform: translateY(20px); }
   100% { opacity: 1; transform: translateY(0); }
 }
+
+/* ==================== 結果スコア表示 ==================== */
+.result-score {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 16px;
+  margin: 18px auto 14px;
+  max-width: 460px;
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+}
+.result-score .rs-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 12px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(0,0,0,0.25));
+  border: 2px solid #555;
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+.result-score .rs-label {
+  font-size: 0.85rem;
+  color: #aab;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.result-score .rs-num {
+  font-size: 4rem;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #ddd;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.6);
+}
+.result-score .rs-divider {
+  align-self: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fc7;
+  font-style: italic;
+  text-shadow: 0 0 10px rgba(252,199,119,0.6);
+  letter-spacing: 0.1em;
+}
+
+/* 勝者側を強調 */
+.result-score .rs-side.winner {
+  border-color: #ffd84d;
+  background: linear-gradient(160deg, rgba(255,216,77,0.18), rgba(255,140,40,0.08));
+  box-shadow: 0 0 20px rgba(255,216,77,0.5), inset 0 0 16px rgba(255,216,77,0.18);
+  animation: rsWinnerPulse 1.4s ease-in-out infinite alternate;
+}
+.result-score .rs-side.winner .rs-num {
+  color: #ffd84d;
+  text-shadow: 0 0 14px #fc7, 0 0 28px #f80, 4px 4px 0 rgba(0,0,0,0.7);
+  -webkit-text-stroke: 2px rgba(180,80,0,0.4);
+  animation: rsWinnerNumberPulse 1.4s ease-in-out infinite alternate;
+}
+.result-score .rs-side.winner .rs-label { color: #ffd84d; font-weight: bold; }
+@keyframes rsWinnerPulse {
+  0%   { transform: scale(1); box-shadow: 0 0 20px rgba(255,216,77,0.5), inset 0 0 16px rgba(255,216,77,0.18); }
+  100% { transform: scale(1.04); box-shadow: 0 0 36px rgba(255,216,77,0.85), inset 0 0 24px rgba(255,216,77,0.3); }
+}
+@keyframes rsWinnerNumberPulse {
+  0%   { filter: brightness(1); }
+  100% { filter: brightness(1.35); }
+}
+
+/* 敗者側 */
+.result-score .rs-side.loser {
+  opacity: 0.65;
+  filter: saturate(0.6);
+}
+.result-score .rs-side.loser .rs-num {
+  color: #888;
+}
+
+/* 引き分け */
+.result-score.draw .rs-side {
+  border-color: #7df;
+  background: linear-gradient(160deg, rgba(127,221,255,0.12), rgba(80,160,200,0.05));
+}
+.result-score.draw .rs-num { color: #7df; }
 
 /* ==================== 演出: 結果(勝利) ==================== */
 #result-overlay.win.show {
@@ -621,11 +1245,13 @@ button:hover { background: #3a6ac8; }
 </div>
 
 <div id="buttons">
-  <button onclick="returnToTitle()">タイトルへ</button>
+  <button onclick="confirmReturnToTitle()">タイトルへ</button>
 </div>
+<div id="corner-flash"></div>
 
 <!-- タイトル画面 -->
 <div id="title-overlay" class="overlay show">
+  <div class="title-particles"></div>
   <div class="modal title-modal">
     <img id="title-logo" src="images/title.png" alt="白黒戦隊オセロマン!">
     <p>君は正義のヒーロー、<strong style="color:#fc7;">白黒戦隊オセロマン</strong>。<br>悪の組織の刺客たちを盤上で打ち破れ！</p>
@@ -640,28 +1266,78 @@ button:hover { background: #3a6ac8; }
 <!-- 色選択画面 -->
 <div id="color-overlay" class="overlay">
   <div class="modal">
-    <h2 style="color:#fc7;margin-bottom:8px;">あなたの戦う色を選べ</h2>
-    <p style="color:#aab;margin-bottom:24px;">選んだ色によって、立ちはだかる敵の姿が変わる…</p>
+    <h2 style="color:#fc7;margin-bottom:18px;">あなたの戦う色を選べ</h2>
+    <div class="story-block">
+<span class="ep">〈第一話・運命は突然降ってくる〉</span>
+20XX年、地球上空に直径8kmの円盤が出現。
+中から悪の組織『黒宙連合』が宣言する。
+<span class="speaker">総統</span>「貴様ら地球人の文明を否定する！我らとオセロで雌雄を決せよ！」
+<span class="speaker">人類</span>「えっ……何そのルール」
+そして君は選ばれた──伝説の白黒戦隊オセロマンとして。
+<span class="aside">※ なお黒と白で性能差はない。気分で決めて差し支えない。</span>
+    </div>
     <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;">
-      <button class="color-choice color-black" onclick="chooseColor('black')">
+      <button class="color-choice" onclick="chooseColor('black')">
         <div class="color-disc-large black"></div>
         <div>黒で戦う</div>
-        <div class="color-sub">先手 / 男性敵</div>
       </button>
-      <button class="color-choice color-white" onclick="chooseColor('white')">
+      <button class="color-choice" onclick="chooseColor('white')">
         <div class="color-disc-large white"></div>
         <div>白で戦う</div>
-        <div class="color-sub">後手 / 女性敵</div>
       </button>
     </div>
-    <div style="margin-top:18px;">
+    <div style="margin-top:24px;">
       <button onclick="returnToTitle()" style="background:#444;">タイトルへ戻る</button>
     </div>
   </div>
 </div>
 
+<!-- 先攻/後攻選択画面 -->
+<div id="turn-overlay" class="overlay">
+  <div class="modal">
+    <h2 style="color:#fc7;margin-bottom:18px;">先攻と後攻、どちらで挑む？</h2>
+    <div class="story-block">
+<span class="ep">〈第二話・手番ガチャ〉</span>
+<span class="speaker">司令官</span>「装備の色は決まったな、オセロマン君。次は重要な選択だ」
+<span class="speaker">オセロマン</span>「と、申しますと？」
+<span class="speaker">司令官</span>「先攻か、後攻か。自らの手で決めねばならん」
+<span class="speaker">オセロマン</span>「えっ自分で決めるんですか」
+<span class="speaker">司令官</span>「うむ。なぜなら『手番ガチャ』こそ漢のロマンだからだ」
+<span class="speaker">オセロマン</span>「ロマンではないと思います」
+<span class="aside">……さあ、心の声に従って選ぶがよい。</span>
+    </div>
+    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;">
+      <button class="turn-choice" onclick="chooseTurn(true)">
+        <div style="font-size:2rem;">⚡</div>
+        <div>先攻</div>
+        <div class="color-sub">最初に石を打つ</div>
+      </button>
+      <button class="turn-choice" onclick="chooseTurn(false)">
+        <div style="font-size:2rem;">🛡</div>
+        <div>後攻</div>
+        <div class="color-sub">敵の出方を見る</div>
+      </button>
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;">
+      <button onclick="showOverlay('color-overlay')" style="background:#444;">色選択へ戻る</button>
+    </div>
+  </div>
+</div>
+
+<!-- 勝敗演出オーバーレイ -->
+<div id="dramatic-overlay" class="overlay">
+  <div id="dramatic-flash"></div>
+  <div id="dramatic-explosion"></div>
+  <div id="dramatic-frame"></div>
+  <div id="dramatic-text">決着！</div>
+</div>
+
 <!-- ステージ紹介画面 -->
 <div id="intro-overlay" class="overlay">
+  <div class="intro-banner intro-banner-1"></div>
+  <div class="intro-banner intro-banner-2"></div>
+  <div class="intro-banner intro-banner-3"></div>
+  <div id="intro-vs-badge">VS</div>
   <div class="modal">
     <div id="intro-stage-tag" class="stage-tag"></div>
     <div id="intro-portrait" class="intro-portrait">
@@ -682,6 +1358,17 @@ button:hover { background: #3a6ac8; }
     </div>
     <h2 id="result-title"></h2>
     <p id="result-quote" class="intro-quote" style="font-style:italic;"></p>
+    <div id="result-score" class="result-score">
+      <div class="rs-side rs-you">
+        <div class="rs-label">あなた</div>
+        <div class="rs-num" id="rs-num-you">0</div>
+      </div>
+      <div class="rs-divider">vs</div>
+      <div class="rs-side rs-enemy">
+        <div class="rs-label" id="rs-label-enemy">敵</div>
+        <div class="rs-num" id="rs-num-enemy">0</div>
+      </div>
+    </div>
     <p id="result-detail"></p>
     <div id="result-buttons" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"></div>
   </div>
@@ -734,11 +1421,15 @@ const STAGES = [
 
 const SAVE_KEY = 'othello_campaign_progress';
 const COLOR_KEY = 'othello_player_color';
+const FIRST_KEY = 'othello_player_first';
 
 let board, currentPlayer, gameOver, cpuThinking;
 let currentStageIndex = 0;
 let stageDelta = 0; // 試合中の優勢/劣勢判定用 (+ ならプレイヤー優勢)
 let playerColor = BLACK; // プレイヤーの石色 (BLACK or WHITE)
+let playerGoesFirst = true; // プレイヤーが先攻か
+let forcedMood = null;     // 角取得イベント等による一時的な表情固定
+let forcedMoodTimer = null;
 
 const boardEl = document.getElementById('board');
 const infoEl = document.getElementById('info');
@@ -804,6 +1495,15 @@ function loadPlayerColor() {
 function savePlayerColor(color) {
   try { localStorage.setItem(COLOR_KEY, color === WHITE ? 'white' : 'black'); } catch {}
 }
+function loadPlayerFirst() {
+  try {
+    const v = localStorage.getItem(FIRST_KEY);
+    return v == null ? true : v === '1';
+  } catch { return true; }
+}
+function savePlayerFirst(first) {
+  try { localStorage.setItem(FIRST_KEY, first ? '1' : '0'); } catch {}
+}
 
 // 敵画像のディレクトリ (プレイヤー色で切替)
 function imageDir() { return playerColor === WHITE ? 'images/fameleenemy' : 'images'; }
@@ -851,6 +1551,7 @@ function getOffset(stageId, state, axis) {
 }
 
 const _swapTimers = new WeakMap();
+const _lastStageId = new WeakMap(); // 要素ごとに直近表示したstage.idを記録
 const FADE_MS = 180;
 
 function applySprite(el, stage, state, hasImage) {
@@ -866,7 +1567,18 @@ function applySprite(el, stage, state, hasImage) {
   const pending = _swapTimers.get(el);
   if (pending) clearTimeout(pending);
 
-  const isInitial = !SPRITE_CLASSES.some(c => el.classList.contains(c)) || currentBg === '';
+  // ステージが切り替わった場合は前画像が一瞬残らないよう即時クリア
+  const lastId = _lastStageId.get(el);
+  if (lastId && lastId !== stage.id) {
+    SPRITE_CLASSES.forEach(c => el.classList.remove(c));
+    el.style.backgroundImage = '';
+    el.style.opacity = '0';
+    void el.offsetHeight; // reflow して transition を効かせる
+  }
+  _lastStageId.set(el, stage.id);
+
+  const currentBg2 = el.style.backgroundImage || '';
+  const isInitial = !SPRITE_CLASSES.some(c => el.classList.contains(c)) || currentBg2 === '';
 
   const swap = () => {
     SPRITE_CLASSES.forEach(c => el.classList.remove(c));
@@ -898,6 +1610,22 @@ function applySprite(el, stage, state, hasImage) {
 function setPortrait(stage, state, target = 'main') {
   if (target === 'main') {
     portraitName.textContent = stage.name;
+  }
+
+  // 対象要素を先に決定し、ステージ切替なら即座に前画像をクリア
+  // (ensureImageが解決するまでの間、前ステージのイラストが残らないように)
+  const targetEl = target === 'main' ? portraitFrame
+                : target === 'intro' ? introPortrait
+                : target === 'result' ? resultPortrait : null;
+  if (targetEl) {
+    const lastId = _lastStageId.get(targetEl);
+    if (lastId && lastId !== stage.id) {
+      const pending = _swapTimers.get(targetEl);
+      if (pending) { clearTimeout(pending); _swapTimers.delete(targetEl); }
+      SPRITE_CLASSES.forEach(c => targetEl.classList.remove(c));
+      targetEl.style.backgroundImage = '';
+      targetEl.style.opacity = '0';
+    }
   }
 
   ensureImage(stage).then(ok => {
@@ -968,6 +1696,15 @@ function returnToTitle() {
   showOverlay('title-overlay');
 }
 
+// 試合中のみ確認ダイアログを挟む
+function confirmReturnToTitle() {
+  const inBattle = !gameOver && board && document.querySelectorAll('.overlay.show').length === 0;
+  if (inBattle) {
+    if (!confirm('試合を中断してタイトルに戻りますか？\n進行中の対戦結果は保存されません。')) return;
+  }
+  returnToTitle();
+}
+
 function buildProgressLine() {
   const idx = loadProgress();
   if (idx === 0) return 'まだ誰も倒していない';
@@ -984,12 +1721,19 @@ function startCampaign() {
 function continueCampaign() {
   currentStageIndex = loadProgress();
   playerColor = loadPlayerColor();
+  playerGoesFirst = loadPlayerFirst();
   showStageIntro();
 }
 
 function chooseColor(c) {
   playerColor = c === 'white' ? WHITE : BLACK;
   savePlayerColor(playerColor);
+  showOverlay('turn-overlay');
+}
+
+function chooseTurn(first) {
+  playerGoesFirst = !!first;
+  savePlayerFirst(playerGoesFirst);
   showStageIntro();
 }
 
@@ -1021,14 +1765,16 @@ function startBattle() {
   setPortrait(stage, 'normal', 'main');
   init();
   render();
-  // BLACKは常に先手。プレイヤーがWHITEなら敵(BLACK)から先に動く
-  if (playerColor === BLACK) {
-    infoEl.textContent = 'あなたの番です（黒・先手）';
+  const colorName = playerColor === BLACK ? '黒' : '白';
+  if (playerGoesFirst) {
+    infoEl.textContent = `あなたの番です（${colorName}・先攻）`;
   } else {
-    infoEl.textContent = `${stage.name}の番です（黒・先手）`;
+    infoEl.textContent = `${stage.name}の先攻。考えています…`;
     cpuThinking = true;
-    setTimeout(cpuMove, 700);
+    setTimeout(cpuMove, 1500); // バナー表示中はCPU待機
   }
+  // 盤上「開始！」演出
+  showBoardBanner('開始！', 1500);
 }
 
 // ===== ゲームロジック =====
@@ -1036,10 +1782,13 @@ function init() {
   board = Array.from({length: 8}, () => Array(8).fill(EMPTY));
   board[3][3] = WHITE; board[3][4] = BLACK;
   board[4][3] = BLACK; board[4][4] = WHITE;
-  currentPlayer = BLACK;
+  // 先攻者(プレイヤーかCPU)が最初の手を打つ
+  currentPlayer = playerGoesFirst ? playerColor : -playerColor;
   gameOver = false;
   cpuThinking = false;
   stageDelta = 0;
+  forcedMood = null;
+  if (forcedMoodTimer) { clearTimeout(forcedMoodTimer); forcedMoodTimer = null; }
 }
 
 function createBoard() {
@@ -1054,6 +1803,20 @@ function createBoard() {
       boardEl.appendChild(cell);
     }
   }
+  // 開始バナー(盤に重ねるため最後に追加。children[r*8+c]の参照は破壊しない)
+  const banner = document.createElement('div');
+  banner.id = 'board-banner';
+  boardEl.appendChild(banner);
+}
+
+function showBoardBanner(text = '開始！', durationMs = 1500) {
+  const banner = document.getElementById('board-banner');
+  if (!banner) return;
+  banner.textContent = text;
+  banner.classList.remove('show');
+  void banner.offsetHeight;
+  banner.classList.add('show');
+  setTimeout(() => banner.classList.remove('show'), durationMs);
 }
 
 function createDisc(color) {
@@ -1108,22 +1871,43 @@ function updateScore() {
 function updateMoodPortrait() {
   if (gameOver) return;
   const stage = STAGES[currentStageIndex];
-  const total = 64 - board.flat().filter(x => x === EMPTY).length;
-  // 序盤(8石以下)はnormal固定、それ以降は差で切替
-  // stageDelta = 黒(プレイヤー) - 白(敵)
   let state;
-  if (total <= 8) {
-    state = 'normal';
-  } else if (stageDelta >= 3) {
-    // プレイヤー優勢 → 敵は劣勢(losing)
-    state = 'losing';
-  } else if (stageDelta <= -3) {
-    // プレイヤー劣勢 → 敵は優勢(winning)
-    state = 'winning';
+  if (forcedMood) {
+    // 角取得イベント等による強制状態
+    state = forcedMood;
   } else {
-    state = 'normal';
+    const total = 64 - board.flat().filter(x => x === EMPTY).length;
+    // 序盤(8石以下)はnormal固定、それ以降は差で切替
+    if (total <= 8) {
+      state = 'normal';
+    } else if (stageDelta >= 3) {
+      state = 'losing';   // プレイヤー優勢 → 敵は劣勢
+    } else if (stageDelta <= -3) {
+      state = 'winning';  // プレイヤー劣勢 → 敵は優勢
+    } else {
+      state = 'normal';
+    }
   }
   setPortrait(stage, state, 'main');
+}
+
+function setForcedMood(state, durationMs = 2500) {
+  forcedMood = state;
+  if (forcedMoodTimer) clearTimeout(forcedMoodTimer);
+  forcedMoodTimer = setTimeout(() => {
+    forcedMood = null;
+    forcedMoodTimer = null;
+    updateMoodPortrait();
+  }, durationMs);
+  updateMoodPortrait();
+}
+
+function shakePortrait() {
+  const f = portraitFrame;
+  f.classList.remove('shake');
+  void f.offsetHeight;
+  f.classList.add('shake');
+  setTimeout(() => f.classList.remove('shake'), 1400);
 }
 
 function isOnBoard(r, c) { return r >= 0 && r < 8 && c >= 0 && c < 8; }
@@ -1175,7 +1959,45 @@ function onCellClick(r, c) {
   });
 }
 
+function isCorner(r, c) {
+  return (r === 0 || r === 7) && (c === 0 || c === 7);
+}
+
+function celebrateCorner(r, c) {
+  const cell = boardEl.children[r * 8 + c];
+  cell.classList.remove('corner-burst');
+  void cell.offsetHeight; // 再生をトリガするため一度reflow
+  cell.classList.add('corner-burst');
+  setTimeout(() => cell.classList.remove('corner-burst'), 1500);
+
+  const flash = document.getElementById('corner-flash');
+  if (flash) {
+    flash.classList.remove('active');
+    void flash.offsetHeight;
+    flash.classList.add('active');
+    setTimeout(() => flash.classList.remove('active'), 800);
+  }
+
+  document.body.classList.remove('shake');
+  void document.body.offsetHeight;
+  document.body.classList.add('shake');
+  setTimeout(() => document.body.classList.remove('shake'), 500);
+}
+
 function animateFlips(r, c, flips, player, callback) {
+  // 角を取った瞬間に派手な演出 + 敵キャラのリアクション
+  if (isCorner(r, c)) {
+    celebrateCorner(r, c);
+    if (player === playerColor) {
+      // プレイヤーが角を取った → 敵は焦り + ポートレート揺れ
+      setForcedMood('losing', 2500);
+      shakePortrait();
+    } else {
+      // 敵が角を取った → 敵は勝ち誇り
+      setForcedMood('winning', 2500);
+    }
+  }
+
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       const cell = boardEl.children[row * 8 + col];
@@ -1409,21 +2231,58 @@ function endGame() {
     }
 
   const stage = STAGES[currentStageIndex];
+  render();
+  infoEl.textContent = 'ゲーム終了';
+
+  const playerCount = playerColor === BLACK ? b : w;
+  const cpuCount = playerColor === BLACK ? w : b;
+
+  if (playerCount > cpuCount) {
+    showDramatic(stage, 'win', () => showResultModal(stage, 'win', b, w));
+  } else if (cpuCount > playerCount) {
+    showDramatic(stage, 'lose', () => showResultModal(stage, 'lose', b, w));
+  } else {
+    showResultModal(stage, 'draw', b, w);
+  }
+}
+
+function showDramatic(stage, kind, callback) {
+  const overlay = document.getElementById('dramatic-overlay');
+  const frame = document.getElementById('dramatic-frame');
+  const text = document.getElementById('dramatic-text');
+
+  // 前回のクラス/画像をクリアして isInitial パスで即時表示
+  SPRITE_CLASSES.forEach(c => frame.classList.remove(c));
+  frame.style.backgroundImage = '';
+  frame.style.opacity = '1';
+
+  overlay.classList.remove('win', 'lose');
+  overlay.classList.add(kind);
+  text.textContent = '決着！';
+
+  // 表示状態: 勝利時=敵の敗北ポーズ / 敗北時=敵の勝利ポーズ
+  const spriteState = kind === 'win' ? 'lose' : 'win';
+  applySprite(frame, stage, spriteState, true);
+
+  showOverlay('dramatic-overlay');
+
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    setTimeout(callback, 250);
+  }, 1800);
+}
+
+function showResultModal(stage, kind, b, w) {
   const title = document.getElementById('result-title');
   const detail = document.getElementById('result-detail');
   const quote = document.getElementById('result-quote');
   const buttons = document.getElementById('result-buttons');
-
-  render();
-
-  // プレイヤー視点のスコア
   const playerCount = playerColor === BLACK ? b : w;
-  const cpuCount = playerColor === BLACK ? w : b;
-  const scoreLine = playerColor === BLACK ? `黒 ${b} - ${w} 白` : `白 ${w} - ${b} 黒`;
+  const cpuCount    = playerColor === BLACK ? w : b;
 
   buttons.innerHTML = '';
-  if (playerCount > cpuCount) {
-    // プレイヤー勝利 → 敵は敗北セリフ
+  detail.style.whiteSpace = '';
+  if (kind === 'win') {
     setPortrait(stage, 'lose', 'result');
     title.textContent = `${stage.name}を撃破！`;
     title.style.color = '#4f8';
@@ -1436,30 +2295,27 @@ function endGame() {
     saveProgress(newProgress);
 
     if (isLast) {
-      detail.textContent = `${scoreLine}\n全ステージ制覇！世界に平和が戻った…`;
-      detail.style.whiteSpace = 'pre-line';
+      detail.textContent = '全ステージ制覇！世界に平和が戻った…';
       buttons.innerHTML = `<button onclick="returnToTitle()">タイトルへ</button>`;
     } else if (beforeBoss) {
-      detail.textContent = `${scoreLine}\n総統を倒した…だが、何者かの気配が…`;
-      detail.style.whiteSpace = 'pre-line';
+      detail.textContent = '総統を倒した…だが、何者かの気配が…';
       buttons.innerHTML = `
         <button onclick="advanceStage()" style="background:#a35;">隠しボスへ</button>
         <button onclick="returnToTitle()">タイトルへ</button>
       `;
     } else {
-      detail.textContent = scoreLine;
+      detail.textContent = '';
       buttons.innerHTML = `
         <button onclick="advanceStage()">次のステージへ</button>
         <button onclick="returnToTitle()">タイトルへ</button>
       `;
     }
-  } else if (cpuCount > playerCount) {
-    // プレイヤー敗北 → 敵は勝利セリフ
+  } else if (kind === 'lose') {
     setPortrait(stage, 'win', 'result');
     title.textContent = `${stage.name}に敗北…`;
     title.style.color = '#f66';
     quote.textContent = `「${stage.enemyVictoryQuote}」`;
-    detail.textContent = scoreLine;
+    detail.textContent = '';
     buttons.innerHTML = `
       <button onclick="retryStage()">もう一度挑戦</button>
       <button onclick="returnToTitle()">タイトルへ</button>
@@ -1469,23 +2325,55 @@ function endGame() {
     title.textContent = '引き分け';
     title.style.color = '#7df';
     quote.textContent = '「……決着はお預けか」';
-    detail.textContent = scoreLine;
+    detail.textContent = '';
     buttons.innerHTML = `
       <button onclick="retryStage()">もう一度挑戦</button>
       <button onclick="returnToTitle()">タイトルへ</button>
     `;
   }
 
+  // スコアセル更新 + カウントアップアニメ
+  const scoreEl   = document.getElementById('result-score');
+  const youSide   = scoreEl.querySelector('.rs-you');
+  const enemySide = scoreEl.querySelector('.rs-enemy');
+  const youNum    = document.getElementById('rs-num-you');
+  const enemyNum  = document.getElementById('rs-num-enemy');
+  document.getElementById('rs-label-enemy').textContent = stage.name;
+
+  scoreEl.classList.toggle('draw', kind === 'draw');
+  youSide.classList.toggle('winner', kind === 'win');
+  youSide.classList.toggle('loser',  kind === 'lose');
+  enemySide.classList.toggle('winner', kind === 'lose');
+  enemySide.classList.toggle('loser',  kind === 'win');
+
   showOverlay('result-overlay');
   const overlay = document.getElementById('result-overlay');
-  if (playerCount > cpuCount) {
+  if (kind === 'win') {
     overlay.classList.add('win');
     spawnConfetti(overlay, 70);
-  } else if (cpuCount > playerCount) {
+  } else if (kind === 'lose') {
     overlay.classList.add('lose');
     spawnAsh(overlay, 50);
   }
-  infoEl.textContent = 'ゲーム終了';
+
+  youNum.textContent = '0';
+  enemyNum.textContent = '0';
+  setTimeout(() => {
+    animateCountUp(youNum, playerCount, 1100);
+    animateCountUp(enemyNum, cpuCount, 1100);
+  }, 350);
+}
+
+function animateCountUp(el, target, duration = 1000) {
+  const startTime = Date.now();
+  const tick = () => {
+    const t = Math.min(1, (Date.now() - startTime) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(target * eased);
+    if (t < 1) setTimeout(tick, 32);
+    else el.textContent = target;
+  };
+  setTimeout(tick, 32);
 }
 
 function advanceStage() {
@@ -1497,8 +2385,27 @@ function retryStage() {
   showStageIntro();
 }
 
+function spawnTitleParticles() {
+  const container = document.querySelector('.title-particles');
+  if (!container || container.childElementCount > 0) return;
+  for (let i = 0; i < 32; i++) {
+    const p = document.createElement('div');
+    p.className = 'title-particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (4 + Math.random() * 5) + 's';
+    p.style.animationDelay = (Math.random() * 5) + 's';
+    p.style.opacity = (0.3 + Math.random() * 0.6).toString();
+    const sz = (3 + Math.random() * 5) + 'px';
+    p.style.width = sz; p.style.height = sz;
+    if (i % 4 === 0) p.style.background = 'rgba(255,160,80,0.7)';
+    else if (i % 5 === 0) p.style.background = 'rgba(180,80,255,0.6)';
+    container.appendChild(p);
+  }
+}
+
 // 初期化
 createBoard();
+spawnTitleParticles();
 returnToTitle();
 </script>
 </body>
