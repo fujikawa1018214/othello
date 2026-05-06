@@ -725,7 +725,7 @@ body.shake { animation: screenShake 0.4s ease-in-out; }
 
 #dramatic-frame { display: none; }
 #dramatic-text {
-  font-size: clamp(6rem, 32vmin, 20rem);
+  font-size: clamp(5rem, 24vmin, 18rem);
   font-weight: 900;
   letter-spacing: 0.18em;
   line-height: 1;
@@ -738,6 +738,10 @@ body.shake { animation: screenShake 0.4s ease-in-out; }
   z-index: 3;
   position: relative;
   -webkit-text-stroke: 3px rgba(0,0,0,0.7);
+  /* 縦書き化を防ぎ常に横一列に揃える (狭い画面でも) */
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
 }
 #dramatic-overlay.show #dramatic-text {
   animation: dramaticTextEnter 0.5s cubic-bezier(0.34, 1.6, 0.5, 1) 0.4s both,
@@ -1010,6 +1014,22 @@ body.shake { animation: screenShake 0.4s ease-in-out; }
   0%   { opacity: 0; transform: translateY(20px); }
   100% { opacity: 1; transform: translateY(0); }
 }
+
+/* 結果画面: 段階表示 (スコア → キャラ+セリフ) */
+/* applySprite等のinline styleに勝つため !important を使用 */
+#result-overlay .result-reveal {
+  opacity: 0 !important;
+  transform: translateY(20px) scale(0.96);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+#result-overlay.reveal-rest #result-portrait { transition-delay: 0s;    opacity: 1 !important; transform: translateY(0) scale(1); }
+#result-overlay.reveal-rest #result-title    { transition-delay: 0.18s; opacity: 1 !important; transform: translateY(0) scale(1); }
+#result-overlay.reveal-rest #result-quote    { transition-delay: 0.32s; opacity: 1 !important; transform: translateY(0) scale(1); }
+#result-overlay.reveal-rest #result-detail   { transition-delay: 0.46s; opacity: 1 !important; transform: translateY(0) scale(1); }
+#result-overlay.reveal-rest #result-buttons  { transition-delay: 0.6s;  opacity: 1 !important; transform: translateY(0) scale(1); }
+
+/* 試合中の盤左キャラ枠を結果/カットイン中は非表示 */
+body.hide-portrait-area #portrait-area { visibility: hidden; }
 
 /* ==================== 結果スコア表示 ==================== */
 .result-score {
@@ -1353,11 +1373,7 @@ body.shake { animation: screenShake 0.4s ease-in-out; }
 <!-- 結果画面 -->
 <div id="result-overlay" class="overlay">
   <div class="modal">
-    <div id="result-portrait" class="intro-portrait" style="width:200px;height:225px;">
-      <div id="result-placeholder" class="placeholder"></div>
-    </div>
-    <h2 id="result-title"></h2>
-    <p id="result-quote" class="intro-quote" style="font-style:italic;"></p>
+    <!-- ① スコア (最初に表示) -->
     <div id="result-score" class="result-score">
       <div class="rs-side rs-you">
         <div class="rs-label">あなた</div>
@@ -1369,8 +1385,14 @@ body.shake { animation: screenShake 0.4s ease-in-out; }
         <div class="rs-num" id="rs-num-enemy">0</div>
       </div>
     </div>
-    <p id="result-detail"></p>
-    <div id="result-buttons" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"></div>
+    <!-- ② キャライラスト+タイトル+セリフ (後から表示) -->
+    <div id="result-portrait" class="intro-portrait result-reveal" style="width:280px;height:315px;">
+      <div id="result-placeholder" class="placeholder"></div>
+    </div>
+    <h2 id="result-title" class="result-reveal"></h2>
+    <p id="result-quote" class="intro-quote result-reveal" style="font-style:italic;"></p>
+    <p id="result-detail" class="result-reveal"></p>
+    <div id="result-buttons" class="result-reveal" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"></div>
   </div>
 </div>
 
@@ -1650,13 +1672,16 @@ function setPortrait(stage, state, target = 'main') {
 function showOverlay(id) {
   document.querySelectorAll('.overlay').forEach(o => {
     o.classList.remove('show');
-    // 結果オーバーレイ離脱時は勝敗マーカと粒子を一掃
     if (o.id === 'result-overlay') {
-      o.classList.remove('win', 'lose');
+      o.classList.remove('win', 'lose', 'reveal-rest');
       o.querySelectorAll('.confetti, .ash').forEach(p => p.remove());
     }
   });
   if (id) document.getElementById(id).classList.add('show');
+
+  // 盤左キャラ枠は結果/カットイン中だけ非表示
+  document.body.classList.toggle('hide-portrait-area',
+    id === 'dramatic-overlay' || id === 'result-overlay');
 }
 
 // 紙吹雪 (勝利時)
@@ -2362,6 +2387,11 @@ function showResultModal(stage, kind, b, w) {
     animateCountUp(youNum, playerCount, 1100);
     animateCountUp(enemyNum, cpuCount, 1100);
   }, 350);
+
+  // スコアカウントアップ完了後にキャラ+セリフを段階表示
+  setTimeout(() => {
+    overlay.classList.add('reveal-rest');
+  }, 1750);
 }
 
 function animateCountUp(el, target, duration = 1000) {
