@@ -1585,7 +1585,7 @@ const STAGES = [
     name: '戦闘員',
     title: '組織の下っ端ザコ兵士',
     aiLevel: 1,
-    introQuote: 'うひゃひゃ！白黒戦隊オセロマン参上ってか！お、俺ぁ戦闘員のヒラだけどよぉ、お前くらい余裕なんだよぉ！来いやぁ！',
+    introQuote: 'うひゃひゃ！白黒戦隊オセロマン参上ってか！お、俺ぁしがない戦闘員だけどよぉ、お前くらい、よ、余裕なんだよぉ！来いやぁ！',
     enemyVictoryQuote: 'うひょー！や、やったぜぇ！戦闘員の俺がオセロマンを倒したぞ！幹部に昇進だぁ〜！',
     enemyDefeatQuote: 'ぎゃーっ！や、やっぱりオセロマンは強ぇぇ！お、覚えてろよぉ〜！(逃走)',
     // 接戦(±3点)用: 相手を認めるニュアンス
@@ -1881,9 +1881,10 @@ function showOverlay(id) {
   });
   if (id) document.getElementById(id).classList.add('show');
 
-  // 盤左キャラ枠はカットイン(決着!)中のみ非表示。
-  // 結果画面では勝敗ポーズに切り替わったキャラを残して見せる。
-  document.body.classList.toggle('hide-portrait-area', id === 'dramatic-overlay');
+  // 盤左キャラ枠は カットイン(決着!) 中・結果モーダル中ともに非表示。
+  // (結果は中央モーダルのキャラに集中)
+  document.body.classList.toggle('hide-portrait-area',
+    id === 'dramatic-overlay' || id === 'result-overlay');
 }
 
 // 紙吹雪 (勝利時)
@@ -2397,8 +2398,8 @@ function cpuHard(cpuColor, isBoss) {
   const moves = getValidMoves(board, cpuColor);
   const totalDiscs = board.flat().filter(x => x !== EMPTY).length;
   const depth = isBoss
-    ? (totalDiscs > 50 ? 12 : 6)
-    : (totalDiscs > 52 ? 8 : 4);
+    ? (totalDiscs > 50 ? 10 : 4)  // グレイ: 12→10 / 6→4
+    : (totalDiscs > 52 ? 6 : 2);  // 総統: 8→6 / 4→2
 
   let bestScore = -Infinity, bestMove = moves[0];
   for (const [r, c] of moves) {
@@ -2499,16 +2500,13 @@ function endGame() {
   const playerCount = playerColor === BLACK ? b : w;
   const cpuCount = playerColor === BLACK ? w : b;
 
-  // 盤左の敵キャラ立ち絵も結果ポーズへ
-  // (gameOver=true でupdateMoodPortraitは無効化されているのでsetPortrait直接呼び)
+  // 結果モーダル中は左ポートレートを常に非表示にするので、
+  // 結果ポーズへの差替えは不要 (中央モーダルのキャライラストに集中)
   if (playerCount > cpuCount) {
-    setPortrait(stage, 'lose', 'main');
     showDramatic(stage, 'win', () => showResultModal(stage, 'win', b, w));
   } else if (cpuCount > playerCount) {
-    setPortrait(stage, 'win', 'main');
     showDramatic(stage, 'lose', () => showResultModal(stage, 'lose', b, w));
   } else {
-    setPortrait(stage, 'normal', 'main');
     showResultModal(stage, 'draw', b, w);
   }
 }
