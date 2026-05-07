@@ -2619,11 +2619,10 @@ function showResultModal(stage, kind, b, w) {
   const overlay = document.getElementById('result-overlay');
   if (kind === 'win') {
     overlay.classList.add('win');
-    spawnConfetti(overlay, 70);
   } else if (kind === 'lose') {
     overlay.classList.add('lose');
-    spawnAsh(overlay, 50);
   }
+  // 紙吹雪/灰は決着の瞬間 (1500ms後) に発生させる
 
   youNum.textContent = '0';
   enemyNum.textContent = '0';
@@ -2651,6 +2650,13 @@ function showResultModal(stage, kind, b, w) {
       void document.body.offsetHeight;
       document.body.classList.add('shake');
       setTimeout(() => document.body.classList.remove('shake'), 450);
+    }
+
+    // 紙吹雪/灰の演出を決着の瞬間に発生
+    if (kind === 'win') {
+      spawnConfetti(overlay, 70);
+    } else if (kind === 'lose') {
+      spawnAsh(overlay, 50);
     }
   }, 1500);
 
